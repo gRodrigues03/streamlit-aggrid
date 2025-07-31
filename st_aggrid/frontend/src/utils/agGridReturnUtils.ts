@@ -1,6 +1,6 @@
 import _ from "lodash"
-import { IRowNode, DetailGridInfo, GridApi } from "ag-grid-community"
-import { eventDataWhiteList } from "../constants"
+import {DetailGridInfo, GridApi, IRowNode} from "ag-grid-community"
+import {eventDataWhiteList} from "../constants"
 
 export async function getGridReturnValue(
   api: GridApi | undefined,
@@ -21,7 +21,6 @@ export async function getGridReturnValue(
       rowTop: n.rowTop,
       displayed: n.displayed,
       isHovered: n.isHovered(),
-      //isFullWidthCell: n.isFullWidthCell(),
       expanded: n.expanded,
       isExpandable: n.expanded,
       group: n.group,
@@ -33,14 +32,10 @@ export async function getGridReturnValue(
       rowGroupIndex: n.rowIndex,
       footer: n.footer,
       parent: fetch_node_props(n.parent),
-      firstChild: n.firstChild,
-      lastChild: n.lastChild,
-      childIndex: n.childIndex,
       level: n.level,
       uiLevel: n.uiLevel,
       allChildrenCount: n.allChildrenCount,
       leafGroup: n.leafGroup,
-      //sibling: fetch_node_props(n.sibling), //this is causing stack overvlow errors TODO: revisit what needs to be returned on grid events.
       rowHeight: n.rowHeight,
       master: n.master,
       detail: n.detail,
@@ -112,7 +107,7 @@ export async function getGridReturnValue(
   cleanEventData["streamlitRerunEventTriggerName"] =
     streamlitRerunEventTriggerName
 
-  let returnValue = {
+  return {
     originalDtypes: props.args.frame_dtypes,
     nodes: nodes,
     selectedItems: api?.getSelectedRows(),
@@ -123,5 +118,4 @@ export async function getGridReturnValue(
     rowIdsAfterSortAndFilter: rowsAfterSortAndFilter,
     eventData: cleanEventData,
   }
-  return returnValue
 }

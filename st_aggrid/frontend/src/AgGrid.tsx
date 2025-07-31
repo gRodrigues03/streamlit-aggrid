@@ -9,15 +9,15 @@ import {
 
 import {
   AllCommunityModule,
-  CellValueChangedEvent,
   DetailGridInfo,
   GetRowIdParams,
   GridApi,
   GridOptions,
   GridReadyEvent,
-  GridSizeChangedEvent,
   ModuleRegistry,
 } from "ag-grid-community"
+
+import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale'
 
 import { AgChartsEnterpriseModule } from "ag-charts-enterprise"
 import { AllEnterpriseModule, LicenseManager } from "ag-grid-enterprise"
@@ -37,15 +37,17 @@ import GridToolBar from "./components/GridToolBar"
 // import ManualDownloadButton from "./components/ManualDownloadButton"
 // import QuickSearch from "./components/QuickSearch"
 
-import { addCustomCSS, injectProAssets, parseJsCodeFromPython } from "./utils/gridUtils"
+import { addCustomCSS, parseJsCodeFromPython } from "./utils/gridUtils"
 
 import { State } from "./types/AgGridTypes"
+
+const localeText = AG_GRID_LOCALE_BR
 
 class AgGrid extends React.Component<ComponentProps, State> {
   public state: State
 
-  private gridContainerRef: React.RefObject<HTMLDivElement>
-  private isGridAutoHeightOn: boolean
+  private readonly gridContainerRef: React.RefObject<HTMLDivElement>
+  private readonly isGridAutoHeightOn: boolean
   private renderedGridHeightPrevious: number = 0
   private themeParser: ThemeParser | undefined = undefined
 
@@ -57,12 +59,6 @@ class AgGrid extends React.Component<ComponentProps, State> {
       addCustomCSS(props.args.custom_css)
     }
 
-    if (props.args.pro_assets && Array.isArray(props.args.pro_assets)) {
-      props.args.pro_assets.forEach((asset: any) => {
-      //console.log(asset);
-      injectProAssets(asset?.js, asset?.css)
-      })
-    }
     const enableEnterpriseModules = props.args.enable_enterprise_modules
     if (
       enableEnterpriseModules === true ||
@@ -87,7 +83,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
     this.isGridAutoHeightOn =
       this.props.args.gridOptions?.domLayout === "autoHeight"
 
-    var go = this.parseGridoptions()
+    const go = this.parseGridoptions()
 
     const StreamlitAgGridPro = (window as any)?.StreamlitAgGridPro
     if (StreamlitAgGridPro) {
@@ -242,7 +238,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
     }
   }
 
-  public componentDidUpdate(prevProps: any, prevState: State, snapshot?: any) {
+  public componentDidUpdate(prevProps: any) {
     const prevGridOptions = prevProps.args.gridOptions
     const currGridOptions = this.props.args.gridOptions
 
@@ -286,21 +282,21 @@ class AgGrid extends React.Component<ComponentProps, State> {
     // eslint-disable-next-line
     this.state.api = event.api
 
-    this.state.api?.addEventListener("rowGroupOpened", (e: any) =>
+    this.state.api?.addEventListener("rowGroupOpened", () =>
       this.resizeGridContainer()
     )
 
-    this.state.api?.addEventListener("firstDataRendered", (e: any) => {
+    this.state.api?.addEventListener("firstDataRendered", () => {
       this.resizeGridContainer()
     })
 
     this.state.api.addEventListener(
       "gridSizeChanged",
-      (e: GridSizeChangedEvent) => this.onGridSizeChanged(e)
+      () => this.onGridSizeChanged()
     )
     this.state.api.addEventListener(
       "cellValueChanged",
-      (e: CellValueChangedEvent) => this.cellValueChanged(e)
+      () => this.cellValueChanged()
     )
 
     //Attach events
@@ -319,34 +315,15 @@ class AgGrid extends React.Component<ComponentProps, State> {
     onGridReady && onGridReady(event)
   }
 
-  private onGridSizeChanged(event: GridSizeChangedEvent) {
+  private onGridSizeChanged() {
     this.resizeGridContainer()
   }
 
-  private cellValueChanged(event: CellValueChangedEvent) {
+  private cellValueChanged() {
     console.log(
       "Data edited on Grid. Ignoring further changes from data paramener (AgGrid(data=dataframe))"
     )
     this.setState({ isRowDataEdited: true })
-  }
-
-  private processPreselection() {
-    //TODO: do not pass grid Options that doesn't exist in aggrid (preSelectAllRows,  preSelectedRows)
-    var preSelectAllRows =
-      this.props.args.gridOptions["preSelectAllRows"] || false
-
-    if (preSelectAllRows) {
-      this.state.api?.selectAll()
-    } else {
-      var preselectedRows = this.props.args.gridOptions["preSelectedRows"]
-      if (preselectedRows || preselectedRows?.length() > 0) {
-        for (var idx in preselectedRows) {
-          this.state.api
-            ?.getRowNode(preselectedRows[idx])
-            ?.setSelected(true, false)
-        }
-      }
-    }
   }
 
   public render = (): ReactNode => {
@@ -377,6 +354,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
         <AgGridReact
           onGridReady={(e: GridReadyEvent<any, any>) => this.onGridReady(e)}
           gridOptions={this.state.gridOptions}
+          localeText={localeText}
         ></AgGridReact>
       </div>
     )

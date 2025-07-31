@@ -60,7 +60,6 @@ class ThemeParser {
             accentColor: streamlitTheme?.primaryColor,
             fontFamily: fontFamily,
             foregroundColor: streamlitTheme.textColor,
-            backgroundColor: streamlitTheme.backgroundColor
         }).withPart(iconSetQuartzLight)
         .withPart(this.partsMapper.iconSetQuartzRegular)
         if (streamlitTheme?.base === 'dark'){
@@ -82,7 +81,7 @@ class ThemeParser {
         return themeAlpine.withPart(iconSetMaterial)
     }
 
-    customRecipe(gridOptionsTheme: stAggridThemeOptions, streamlitTheme?: StreamlitTheme) : Theme {
+    customRecipe(gridOptionsTheme: stAggridThemeOptions) : Theme {
         const {base, params, parts} = gridOptionsTheme
 
         let theme: Theme = this.baseMapper[base]
@@ -108,7 +107,7 @@ class ThemeParser {
             alpine: () => this.alpineRecipe(),
             balham: () => this.balhamRecipe(),
             material: () => this.materialRecipe(),
-            custom: () => this.customRecipe(gridOptionsTheme, streamlitTheme)
+            custom: () => this.customRecipe(gridOptionsTheme)
         };
 
         const recipe = recipeMapper[themeName] || (() => themeBalham);

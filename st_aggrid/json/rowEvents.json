@@ -63,27 +63,6 @@
         "description": "expanded has changed.More details "
     },
     {
-        "name": "firstChildChanged",
-        "props": {
-            "Type": "RowNodeEvent"
-        },
-        "description": "firstChild has changed.More details "
-    },
-    {
-        "name": "lastChildChanged",
-        "props": {
-            "Type": "RowNodeEvent"
-        },
-        "description": "lastChild has changed.More details "
-    },
-    {
-        "name": "childIndexChanged",
-        "props": {
-            "Type": "RowNodeEvent"
-        },
-        "description": "childIndex has changed.More details "
-    },
-    {
         "name": "allChildrenCountChanged",
         "props": {
             "Type": "RowNodeEvent"

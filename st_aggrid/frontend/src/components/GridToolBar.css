@@ -30,7 +30,7 @@
 }
 
 .toolbar-button {
-    background-color: transparent;
+    background-color: #0000;
     color: var(--ag-foreground-color, #000); /* Use AG Grid foreground color */
     border: none;
     border-radius: 50%;
@@ -82,7 +82,7 @@
 .toolbar-input input {
     border: none;
     outline: none;
-    background: transparent;
+    background: #0000;
     color: var(--ag-foreground-color, #000); /* Use AG Grid foreground color */
     font-size: 12px; /* Keep the font size small */
     flex: 1;
