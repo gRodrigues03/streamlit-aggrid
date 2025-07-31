@@ -1,23 +1,16 @@
-import os
-import json
+import os, json, warnings, typing
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
-import warnings
-import typing
 
-from decouple import config
 from typing import Any, Mapping, Tuple, Union
-from st_aggrid.grid_options_builder import GridOptionsBuilder
-from st_aggrid.shared import (
-    GridUpdateMode,
+from .grid_options_builder import GridOptionsBuilder
+from .shared import (
     DataReturnMode,
-    JsCode,
     StAggridTheme,
     walk_gridOptions,
-    AgGridTheme,
 )
-from st_aggrid.AgGridReturn import AgGridReturn
+from .AgGridReturn import AgGridReturn
 
 
 # This function exists because pandas behaviour when converting tz aware datetime to iso format.
@@ -71,7 +64,7 @@ def __parse_grid_options(
 ):
     """Internal method to cast gridOptions parameter to a valid gridoptions"""
     # if no gridOptions is passed, builds a default one.
-    if (gridOptions_parameter == None) and not (data is None):
+    if (gridOptions_parameter is None) and not (data is None):
         gb = GridOptionsBuilder.from_dataframe(data, **default_column_parameters)
         gridOptions = gb.build()
 
@@ -99,62 +92,22 @@ def __parse_grid_options(
     if unsafe_allow_jscode:
         # NOTE: Streamlit should allow passing a class to its inner component dumps, this way any class could serialized on AgGrid call.
         walk_gridOptions(
-            gridOptions, lambda v: v.js_code if isinstance(v, JsCode) else v
+            gridOptions, lambda v: v
         )
 
     return gridOptions
 
 
-_RELEASE = config("AGGRID_RELEASE", default=True, cast=bool)
 
-if not _RELEASE:
-    warnings.warn("WARNING: ST_AGGRID is in development mode.")
-    _component_func = components.declare_component(
-        "agGrid",
-        url="http://localhost:3001",
-    )
-else:
-    parent_dir = os.path.dirname(os.path.abspath(__file__))
-    build_dir = os.path.join(parent_dir, "frontend", "build")
-    _component_func = components.declare_component("agGrid", path=build_dir)
-
-
-def __parse_update_mode(update_mode: GridUpdateMode):
-    update_on = []
-
-    if update_mode & GridUpdateMode.VALUE_CHANGED:
-        update_on.append("cellValueChanged")
-
-    if update_mode & GridUpdateMode.SELECTION_CHANGED:
-        update_on.append("selectionChanged")
-
-    if update_mode & GridUpdateMode.FILTERING_CHANGED:
-        update_on.append("filterChanged")
-
-    if update_mode & GridUpdateMode.SORTING_CHANGED:
-        update_on.append("sortChanged")
-
-    if update_mode & GridUpdateMode.COLUMN_RESIZED:
-        update_on.append(("columnResized", 300))
-
-    if update_mode & GridUpdateMode.COLUMN_MOVED:
-        update_on.append(("columnMoved", 500))
-
-    if update_mode & GridUpdateMode.COLUMN_PINNED:
-        update_on.append("columnPinned")
-
-    if update_mode & GridUpdateMode.COLUMN_VISIBLE:
-        update_on.append("columnVisible")
-
-    return update_on
-
+parent_dir = os.path.dirname(os.path.abspath(__file__))
+build_dir = os.path.join(parent_dir, "frontend", "build")
+_component_func = components.declare_component("agGrid", path=build_dir)
 
 def AgGrid(
     data: Union[pd.DataFrame, str] = None,
     gridOptions: typing.Dict = None,
     height: int = 400,
     fit_columns_on_grid_load=False,
-    update_mode: GridUpdateMode = GridUpdateMode.MODEL_CHANGED,
     data_return_mode: DataReturnMode = DataReturnMode.FILTERED_AND_SORTED,
     allow_unsafe_jscode: bool = False,
     enable_enterprise_modules: bool = False,
@@ -162,10 +115,10 @@ def AgGrid(
     try_to_convert_back_to_original_types: bool = True,
     conversion_errors: str = "coerce",
     columns_state=None,
-    theme: str | StAggridTheme = "streamlit",
+    theme: str | StAggridTheme = None,
     custom_css=None,
     key: typing.Any = None,
-    update_on=[],
+    update_on=(),
     callback=None,
     show_toolbar: bool = False,
     show_search: bool = True,
@@ -176,7 +129,7 @@ def AgGrid(
 
     Parameters
     ----------
-    dataframe : pd.DataFrame
+    data : pd.DataFrame
         The underlying dataframe to be used.
 
     gridOptions : typing.Dict, optional
@@ -189,33 +142,10 @@ def AgGrid(
         If None, grid will enable Auto Height by default https://www.ag-grid.com/react-data-grid/grid-size/#dom-layout
         Default: None
 
-    width : [type], optional
-        Deprecated.
-
     fit_columns_on_grid_load : bool, optional
         DEPRECATED, use columns_auto_size_mode
         Use gridOptions autoSizeStrategy (https://www.ag-grid.com/javascript-data-grid/column-sizing/#auto-sizing-columns)
 
-    columns_auto_size_mode: ColumnsAutoSizeMode, optional
-        DEPRECATED.
-        Use gridOptions autoSizeStrategy (https://www.ag-grid.com/javascript-data-grid/column-sizing/#auto-sizing-columns)
-
-    update_mode : GridUpdateMode, optional
-        DEPRECATED. USE update_on instead.
-
-        Defines how the grid will send results back to streamlit.
-        either a string, one or a combination of:
-            GridUpdateMode.NO_UPDATE
-            GridUpdateMode.MANUAL
-            GridUpdateMode.VALUE_CHANGED
-            GridUpdateMode.SELECTION_CHANGED
-            GridUpdateMode.FILTERING_CHANGED
-            GridUpdateMode.SORTING_CHANGED
-            GridUpdateMode.MODEL_CHANGED
-        When using manual, a save button will be drawn on top of the grid.
-        Modes can be combined with bitwise OR operator |, for instance:
-        GridUpdateMode = VALUE_CHANGED | SELECTION_CHANGED | FILTERING_CHANGED | SORTING_CHANGED
-        Default: GridUpdateMode.MODEL_CHANGED
 
     update_on: list[string | tuple[string, int]], optional
         Defines the events that will trigger a refresh and grid return on the Streamlit app.
@@ -306,28 +236,14 @@ def AgGrid(
         Returns an AgGridReturn object containing the grid's data and other metadata.
     """
 
-    # if not (isinstance(theme, (str, AgGridTheme)) and (theme in AgGridTheme)):
-    #     raise ValueError(
-    #         f"{theme} is not valid. Available options: {AgGridTheme.__members__}"
-    #     )
-    # else:
-    #     if isinstance(theme, AgGridTheme):
-    #         theme = theme.value
-
-    ##Parses Themes
-    if isinstance(theme, (str, AgGridTheme)):
-        # Legacy compatibility
-        themeObj: StAggridTheme = StAggridTheme(None)
-        themeObj["themeName"] = theme if isinstance(theme, str) else theme.value
-
-    elif isinstance(theme, StAggridTheme):
+    if isinstance(theme, StAggridTheme) or isinstance(theme, dict):
         themeObj = theme
 
     elif theme is None:
         themeObj = "streamlit"
     else:
         raise ValueError(
-            f"{theme} is not valid. Available options: {AgGridTheme.__members__}"
+            f"{theme} is not valid."
         )
 
     # Parse return Mode
@@ -340,25 +256,6 @@ def AgGrid(
             data_return_mode = DataReturnMode[data_return_mode.upper()]
         except:
             raise ValueError(f"{data_return_mode} is not valid.")
-
-    # Parse update Mode
-    if not isinstance(update_mode, (str, GridUpdateMode)):
-        raise ValueError(
-            "GridUpdateMode should be either a valid GridUpdateMode enum value or string"
-        )
-    elif isinstance(update_mode, str):
-        try:
-            update_mode = GridUpdateMode[update_mode.upper()]
-        except:
-            raise ValueError(f"{update_mode} is not valid.")
-
-    if update_mode:
-        update_on = list(update_on)
-        if update_mode == GridUpdateMode.MANUAL:
-            manual_update = True
-        else:
-            manual_update = False
-            update_on.extend(__parse_update_mode(update_mode))
 
     # Parse gridOptions
     gridOptions = __parse_grid_options(
@@ -377,7 +274,7 @@ def AgGrid(
 
     custom_css = custom_css or dict()
 
-    if height == None:
+    if height is None:
         gridOptions["domLayout"] = "autoHeight"
 
     if fit_columns_on_grid_load:
@@ -425,7 +322,6 @@ def AgGrid(
             theme=themeObj,
             custom_css=custom_css,
             update_on=update_on,
-            manual_update=manual_update,
             key=key,
             on_change=_inner_callback,
             show_toolbar=show_toolbar,
@@ -441,7 +337,7 @@ def AgGrid(
             ". If you're using custom JsCode objects on gridOptions, ensure that allow_unsafe_jscode is True."
         )
         # ex = components.components.MarshallComponentException(*args)
-        raise (ex)
+        raise ex
 
     if component_value:
         response._set_component_value(component_value)

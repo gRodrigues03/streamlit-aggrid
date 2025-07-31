@@ -1,16 +1,15 @@
-from st_aggrid.AgGrid import AgGrid
-from st_aggrid.grid_options_builder import GridOptionsBuilder
-from st_aggrid.shared import (
+from .AgGrid import AgGrid
+from .grid_options_builder import GridOptionsBuilder
+from .shared import (
     GridUpdateMode,
     DataReturnMode,
     JsCode,
     walk_gridOptions,
     ColumnsAutoSizeMode,
-    AgGridTheme,
     ExcelExportMode,
     StAggridTheme,
 )
-from st_aggrid.AgGridReturn import AgGridReturn
+from .AgGridReturn import AgGridReturn
 
 __all__ = [
     "AgGrid",
@@ -21,7 +20,6 @@ __all__ = [
     "JsCode",
     "walk_gridOptions",
     "ColumnsAutoSizeMode",
-    "AgGridTheme",
     "ExcelExportMode",
     "StAggridTheme",
 ]

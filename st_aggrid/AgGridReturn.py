@@ -1,7 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Any, List, Mapping, Union, Any
-from collections import defaultdict
-from st_aggrid.shared import DataReturnMode
+from typing import Mapping
+from .shared import DataReturnMode
 
 import json
 import pandas as pd
@@ -135,11 +133,12 @@ class AgGridReturn(Mapping):
 
         return data
 
+    @staticmethod
     def __process_grouped_response(
-        self, nodes, __try_to_convert_back_to_original_types, __data_return_mode
+        nodes, __try_to_convert_back_to_original_types, __data_return_mode
     ):
         def travel_parent(o):
-            if o.get("parent", None) == None:
+            if o.get("parent", None) is None:
                 return ""
 
             return rf"""{travel_parent(o.get("parent"))}.{o.get("parent").get("key")}""".lstrip(
@@ -160,7 +159,7 @@ class AgGridReturn(Mapping):
         return groups
 
     def __get_data(self, onlySelected):
-            data = self.__original_data
+        data = self.__original_data
 
         if self.__component_value_set:
             nodes = self.grid_response.get("nodes", [])
@@ -211,13 +210,13 @@ class AgGridReturn(Mapping):
 
     @property
     def data(self):
-        "Data from the grid. If rows are grouped, return only the leaf rows"
+        """Data from the grid. If rows are grouped, return only the leaf rows"""
 
         return self.__get_data(onlySelected=False)
 
     @property
     def selected_data(self):
-        "Selected Data from the grid."
+        """Selected Data from the grid."""
 
         return self.__get_data(onlySelected=True)
 
@@ -230,7 +229,7 @@ class AgGridReturn(Mapping):
                 nodes = list(filter(lambda n: n.get("isSelected", True) == True, nodes))
 
                 if not nodes:
-                    return [{(""): self.__get_data(onlySelected)}]
+                    return [{"": self.__get_data(onlySelected)}]
 
             response_has_groups = any((n.get("group", False) for n in nodes))
 
@@ -242,17 +241,17 @@ class AgGridReturn(Mapping):
                 )
                 return data
 
-        return [{(""): self.__get_data(onlySelected)}]
+        return [{"": self.__get_data(onlySelected)}]
 
     @property
     def dataGroups(self):
-        "returns grouped rows as a dictionary where keys are tuples of groupby strings and values are pandas.DataFrame"
+        """returns grouped rows as a dictionary where keys are tuples of groupby strings and values are pandas.DataFrame"""
 
         return self.__get_dataGroups(onlySelected=False)
 
     @property
     def selected_dataGroups(self):
-        "returns selected rows as a dictionary where keys are tuples of grouped column names and values are pandas.DataFrame"
+        """returns selected rows as a dictionary where keys are tuples of grouped column names and values are pandas.DataFrame"""
 
         return self.__get_dataGroups(onlySelected=True)
 

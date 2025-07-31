@@ -1,6 +1,6 @@
 from collections import defaultdict
 import pandas as pd
-from st_aggrid.shared import getAllColumnProps, getAllGridOptions
+from .shared import getAllColumnProps, getAllGridOptions
 
 
 class GridOptionsBuilder:
@@ -14,19 +14,19 @@ class GridOptionsBuilder:
         self.sideBar: dict = dict()
 
     @staticmethod
-    def from_dataframe(dataframe, **default_column_parameters):
+    def from_dataframe(dataframe, columns=(), **default_column_parameters):
         """
         Creates an instance and initilizes it from a dataframe.
         ColumnDefs are created based on dataframe columns and data types.
 
         Args:
             dataframe (pd.DataFrame): a pandas DataFrame.
+            columns (optional): a list of ordered all the columns in the dataframe
 
         Returns:
             GridOptionsBuilder: The instance initialized from the dataframe definition.
         """
 
-        # numpy types: 'biufcmMOSUV' https://numpy.org/doc/stable/reference/generated/numpy.dtype.kind.html
         type_mapper = {
             "b": ["textColumn"],
             "i": ["numericColumn", "numberColumnFilter"],
@@ -41,29 +41,33 @@ class GridOptionsBuilder:
             "V": [],
         }
 
-        COLUMN_PROPS = [i["name"] for i in getAllColumnProps()]
-        GRID_OPTIONS = [i["name"] for i in getAllGridOptions()]
+        COLUMN_PROPS = [i['name'] for i in getAllColumnProps()]
+        GRID_OPTIONS = [i['name'] for i in getAllGridOptions()]
 
         gb = GridOptionsBuilder()
 
         # fetch extra args that should go to DefaultColumns
         for k, v in default_column_parameters.items():
+
             if k in COLUMN_PROPS:
-                gb.configure_default_column(**{k: v})
+               gb.configure_default_column(**{k:v})
             elif k in GRID_OPTIONS:
-                gb.configure_grid_options(**{k: v})
+                gb.configure_grid_options(**{k:v})
             else:
                 print(f"{k} is not a valid gridOption or columnDef.")
 
-        if any("." in col for col in dataframe.columns.map(str)):
+        if not len(columns):
+            columns = dataframe.columns.map(str)
+        else:
+            columns = [col for col in columns if col in dataframe.columns.map(str)]
+
+        if any("." in col for col in columns):
             gb.configure_grid_options(suppressFieldDotNotation=True)
 
-        for col_name, col_type in zip(dataframe.columns.map(str), dataframe.dtypes):
+        for col_name, col_type in zip(columns, dataframe[columns].dtypes):
             gb.configure_column(field=col_name, type=type_mapper.get(col_type.kind, []))
 
-        gb.configure_grid_options(
-            autoSizeStrategy={"type": "fitCellContents", "skipHeader": False}
-        )
+        gb.configure_grid_options(autoSizeStrategy={'type':'fitCellContents', 'skipHeader':False})
 
         return gb
 
@@ -76,7 +80,7 @@ class GridOptionsBuilder:
         # editable=False,
         # groupable=False,
         # sorteable=None,
-        **other_default_column_properties,
+        **other_default_column_properties
     ):
         """Configure default column.
 
@@ -121,14 +125,11 @@ class GridOptionsBuilder:
         # }
         # if groupable:
         #     defaultColDef["enableRowGroup"] = groupable
-        defaultColDef = {}
-        if other_default_column_properties:
-            defaultColDef = {**defaultColDef, **other_default_column_properties}
+        # defaultColDef = {}
+        # if other_default_column_properties:
+        #     defaultColDef = {**defaultColDef, **other_default_column_properties}
 
-        self.__grid_options["defaultColDef"] = {
-            **self.__grid_options["defaultColDef"],
-            **other_default_column_properties,
-        }
+        self.__grid_options["defaultColDef"] = {**self.__grid_options["defaultColDef"], **other_default_column_properties}
 
     def configure_auto_height(self, autoHeight=True):
         """
@@ -146,11 +147,11 @@ class GridOptionsBuilder:
         """Merges props to gridOptions
 
         Args:
-            props (dict): props dicts will be merged to gridOptions root.
+            props: props dicts will be merged to gridOptions root.
         """
         self.__grid_options.update(props)
 
-    def configure_columns(self, column_names=[], **props):
+    def configure_columns(self, column_names=(), **props):
         """Batch configures columns. Key-pair values from props dict will be merged
         to colDefs which field property is in column_names list.
 
@@ -163,7 +164,7 @@ class GridOptionsBuilder:
             if k in column_names:
                 self.__grid_options["columnDefs"][k].update(props)
 
-    def configure_column(self, field, header_name=None, **other_column_properties):
+    def configure_column(self, field=None, header_name=None, **other_column_properties):
         """Configures an individual column
         check https://www.ag-grid.com/javascript-grid-column-properties/ for more information.
 
@@ -174,10 +175,15 @@ class GridOptionsBuilder:
         if not self.__grid_options.get("columnDefs", None):
             self.__grid_options["columnDefs"] = defaultdict(dict)
 
-        colDef = {
-            "headerName": field if header_name is None else header_name,
-            "field": field,
-        }
+        if field is not None:
+            colDef = {
+                "headerName": field if header_name is None else header_name,
+                "field": field,
+            }
+        else:
+            colDef = {
+                "headerName": ''
+            }
 
         if other_column_properties:
             colDef = {**colDef, **other_column_properties}
@@ -306,7 +312,7 @@ class GridOptionsBuilder:
 
         if pre_selected_rows:
             # self.__grid_options["preSelectedRows"] = pre_selected_rows
-            self.__grid_options["initialState"]["rowSelection"] = pre_selected_rows
+            self.__grid_options['initialState']['rowSelection'] = pre_selected_rows
 
         self.__grid_options["rowSelection"] = selection_mode
         self.__grid_options["rowMultiSelectWithClick"] = rowMultiSelectWithClick

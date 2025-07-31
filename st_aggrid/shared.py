@@ -1,8 +1,6 @@
-from dataclasses import dataclass
-from enum import Enum, IntEnum, IntFlag, Flag, auto, EnumMeta
-import json
-import pathlib
-from typing import List, Literal, Mapping, Optional, TypedDict
+from enum import Enum, IntEnum, Flag, auto, EnumMeta
+import json, re, pathlib
+from typing import Literal, Optional
 
 DEFAULT_COLUMN_PROPS = [
     "cellDataType",
@@ -113,39 +111,13 @@ class ExcelExportMode(BaseEnum):
     MULTIPLE_SHEETS = "MULTIPLE_SHEETS"  # Triggers the download and add other B64 encoded sheets. Send sheets as a list using excel_export_extra_sheets parameter
 
 
+_comment_re = re.compile(r'/\*[\s\S]*?\*/|(?<![:\\])//.*$', re.MULTILINE)
+_whitespace_re = re.compile(r'\s+')
 # stole from https://github.com/andfanilo/streamlit-echarts/blob/master/streamlit_echarts/frontend/src/utils.js Thanks andfanilo
-class JsCode:
-    def __init__(self, js_code: str):
-        """Wrapper around a js function to be injected on gridOptions.
-        code is not checked at all.
-        set allow_unsafe_jscode=True on AgGrid call to use it.
-        Code is rebuilt on client using new Function Syntax (https://javascript.info/new-function)
-
-        Args:
-            js_code (str): javascript function code as str
-        """
-        import re
-
-        match_js_comment_expression = r"\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$"
-        js_code = re.sub(
-            re.compile(match_js_comment_expression, re.MULTILINE), r"\1", js_code
-        )
-
-        match_js_spaces = r"\s+(?=(?:[^\'\"]*[\'\"][^\'\"]*[\'\"])*[^\'\"]*$)"
-        one_line_jscode = re.sub(match_js_spaces, " ", js_code, flags=re.MULTILINE)
-
-        js_placeholder = "::JSCODE::"
-        one_line_jscode = re.sub(r"\s+|\r\s*|\n+", " ", js_code, flags=re.MULTILINE)
-
-        self.js_code = f"{js_placeholder}{one_line_jscode}{js_placeholder}"
-
-
-class JsCodeEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, JsCode):
-            return o.js_code
-
-        return super().default(o)
+def JsCode(js_code):
+    js_code = _comment_re.sub('', js_code)
+    js_code = _whitespace_re.sub(' ', js_code).strip()
+    return f"::JSCODE::{js_code}::JSCODE::"
 
 
 def walk_gridOptions(go, func):
@@ -189,10 +161,7 @@ def fetch_grid_options_from_site():
         values = [p.text for p in c1.select("span._metaValue_1pw3t_167")]
         args = dict(itertools.zip_longest(labels, values))
         description = c2.text
-        i = {}
-        i["name"] = element
-        i["props"] = args
-        i["description"] = description
+        i = {"name": element, "props": args, "description": description}
         result.append(i)
 
     import json
@@ -200,39 +169,23 @@ def fetch_grid_options_from_site():
     return json.dumps(result, indent=4)
 
 
-# add deprecation note
-class AgGridTheme(BaseEnum):
-    STREAMLIT = "streamlit"
-    ALPINE = "alpine"
-    BALHAM = "balham"
-    MATERIAL = "material"
-
-
-class StAggridThemeType(TypedDict):
-    themeName: str
-    base: Literal["alpine", "balham", "quartz"]
-    params: Optional[Mapping[str, str | int]] = {}
-    parts: Optional[List[str]]
-
-
 # suclassing a dict because it is JSON serializable.
 class StAggridTheme(dict):
     def __init__(self, base: Optional[Literal["alpine", "balham", "quartz"]] = None):
-        super()
-
+        super().__init__()
         self["params"] = {}
         self["parts"] = list()
-        if base:
+        if base is not None:
             self["themeName"] = "custom"
             self.base(base)
 
     def base(self, base: Literal["alpine", "balham", "quartz"]):
         self["base"] = base
 
-    def withParams(self, **params: Mapping[str, str | int]):
+    def withParams(self, **params):
         self["params"].update(params)
         return self
 
-    def withParts(self, *parts: List[str]):
+    def withParts(self, *parts):
         self["parts"] = list(set(self["parts"]).union(set(parts)))
         return self
