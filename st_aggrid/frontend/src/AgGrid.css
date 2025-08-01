@@ -45,3 +45,6 @@ body {
 .ag-header-cell, .ag-header-group-cell {
   padding: 0 !important
 }
+
+div[col-id="ag-Grid-SelectionColumn"] {padding: 0 7px !important}
+.ag-header-cell-label {justify-content: center}
