@@ -29,7 +29,6 @@ import { deepMap } from "./utils"
 import { ThemeParser } from "./ThemeParser"
 import { getGridReturnValue } from "./utils/agGridReturnUtils"
 
-import "@fontsource/source-sans-pro"
 import "./AgGrid.css"
 
 import GridToolBar from "./components/GridToolBar"
@@ -141,10 +140,9 @@ class AgGrid extends React.Component<ComponentProps, State> {
 
     //processTheming
     this.themeParser = new ThemeParser()
-    let streamlitTheme = this.props.theme
     let agGridTheme = this.props.args.theme
 
-    gridOptions.theme = this.themeParser.parse(agGridTheme, streamlitTheme)
+    gridOptions.theme = this.themeParser.parse(agGridTheme)
 
     return gridOptions
   }
@@ -247,11 +245,10 @@ class AgGrid extends React.Component<ComponentProps, State> {
       !isEqual(prevProps.theme, this.props.theme) ||
       !isEqual(this.props.args.theme, prevProps.args.theme)
     ) {
-      let streamlitTheme = this.props.theme
       let agGridTheme = this.props.args.theme
 
       this.state.api?.updateGridOptions({
-        theme: this.themeParser?.parse(agGridTheme, streamlitTheme),
+        theme: this.themeParser?.parse(agGridTheme),
       })
     }
 

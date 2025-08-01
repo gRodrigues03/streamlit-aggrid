@@ -18,8 +18,6 @@ import { themeQuartz,
 } from 'ag-grid-community';
 import _ from 'lodash';
 
-import { Theme as StreamlitTheme } from "streamlit-component-lib"
-
 type stAggridThemeOptions = {
     themeName: string,
     base: string,
@@ -49,24 +47,6 @@ class ThemeParser {
         iconSetAlpine: iconSetAlpine,
         iconSetMaterial: iconSetMaterial,
         iconSetQuartzRegular: iconSetQuartzRegular
-    }
-
-    streamlitRecipe(streamlitTheme: StreamlitTheme): Theme{
-        let theme : Theme = this.baseMapper['balham']
-        const font = streamlitTheme?.font?.split(",").at(1)?.trim() || "Source Sans Pro"
-        const fontFamily = [font, {googleFont: font}]
-
-        theme = theme.withParams({
-            accentColor: streamlitTheme?.primaryColor,
-            fontFamily: fontFamily,
-            foregroundColor: streamlitTheme.textColor,
-        }).withPart(iconSetQuartzLight)
-        .withPart(this.partsMapper.iconSetQuartzRegular)
-        if (streamlitTheme?.base === 'dark'){
-            theme = theme.withPart(colorSchemeDark)
-        }
-
-        return theme
     }
 
     alpineRecipe() {
@@ -99,11 +79,10 @@ class ThemeParser {
     }
 
 
-    parse(gridOptionsTheme: stAggridThemeOptions, streamlitTheme?: StreamlitTheme) : Theme {
+    parse(gridOptionsTheme: stAggridThemeOptions) : Theme {
         const { themeName } = gridOptionsTheme;
 
         const recipeMapper: { [key: string]: () => Theme } = {
-            streamlit: () => this.streamlitRecipe(streamlitTheme!),
             alpine: () => this.alpineRecipe(),
             balham: () => this.balhamRecipe(),
             material: () => this.materialRecipe(),

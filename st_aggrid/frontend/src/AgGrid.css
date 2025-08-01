@@ -32,3 +32,16 @@ body {
   width: 100%;
   height: calc(100% - 50px) /* Subtract the toolbar height from the total height */
 }
+
+.ag-root,
+.ag-theme-alpine,
+.ag-header,
+.ag-cell,
+.ag-row,
+.ag-body {
+  font-family: 'Plus Jakarta Sans';
+}
+
+.ag-header-cell, .ag-header-group-cell {
+  padding: 0 !important
+}
