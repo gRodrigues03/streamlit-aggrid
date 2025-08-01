@@ -48,3 +48,25 @@ body {
 
 div[col-id="ag-Grid-SelectionColumn"] {padding: 0 7px !important}
 .ag-header-cell-label {justify-content: center}
+
+/* Stupidity below */
+.telala td {padding: 8px 24px; background: #F0F8FF; color: #000; font-weight: 400; text-align: center}
+.telala td.headerer {background: #E0E8FFEE; font-weight: 700}
+.telala td.yellowed {color: rgb(102, 0, 17);background-color: rgb(252, 252, 101); font-weight: 700}
+.telala {border-collapse: separate; border-spacing: 2px; margin: 10px; background: #3336; border-radius: .5rem}
+
+.telala tr:first-child td:first-child {
+  border-top-left-radius: .5rem
+}
+
+.telala tr:first-child td:last-child {
+  border-top-right-radius: .5rem
+}
+
+.telala tr:last-child td:first-child {
+  border-bottom-left-radius: .5rem
+}
+
+.telala tr:last-child td:last-child {
+  border-bottom-right-radius: .5rem
+}
