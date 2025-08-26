@@ -19,13 +19,11 @@ import {
 
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale'
 
-import { AgChartsEnterpriseModule } from "ag-charts-enterprise"
 import { AllEnterpriseModule, LicenseManager } from "ag-grid-enterprise"
 
 import {debounce, cloneDeep, every, isEqual} from "lodash"
 
 import { columnFormaters } from "./customColumns"
-import { deepMap } from "./utils"
 import { ThemeParser } from "./ThemeParser"
 import { getGridReturnValue } from "./utils/agGridReturnUtils"
 
@@ -38,9 +36,28 @@ import GridToolBar from "./components/GridToolBar"
 
 import { addCustomCSS, parseJsCodeFromPython } from "./utils/gridUtils"
 
-import { State } from "./types/AgGridTypes"
+export interface State {
+    gridHeight: number
+    gridOptions: GridOptions
+    isRowDataEdited: boolean
+    api?: GridApi
+    enterprise_features_enabled: boolean
+    debug: boolean
+}
 
-const localeText = AG_GRID_LOCALE_BR
+function deepMap<T>(obj: T, fn: (v: any) => any, keysToIgnore: string[] = []): T {
+    if (Array.isArray(obj)) return obj.map(v => deepMap(v, fn, keysToIgnore)) as unknown as T;
+
+    if (obj && typeof obj === 'object') {
+        return Object.fromEntries(
+            Object.entries(obj).map(([k, v]) => [
+                k,
+                keysToIgnore.includes(k) ? v : deepMap(v, fn, keysToIgnore)
+            ])
+        ) as T;
+    }
+    return fn(obj);
+}
 
 class AgGrid extends React.Component<ComponentProps, State> {
   public state: State
@@ -54,25 +71,13 @@ class AgGrid extends React.Component<ComponentProps, State> {
     super(props)
     this.gridContainerRef = React.createRef()
 
-    if (props.args.custom_css) {
-      addCustomCSS(props.args.custom_css)
-    }
+      props.args.custom_css&&addCustomCSS(props.args.custom_css)
 
     const enableEnterpriseModules = props.args.enable_enterprise_modules
-    if (
-      enableEnterpriseModules === true ||
-      enableEnterpriseModules === "enterprise+AgCharts"
-    ) {
-      ModuleRegistry.registerModules([
-      AllEnterpriseModule.with(AgChartsEnterpriseModule),
-      ])
+    if (enableEnterpriseModules === true) {
+        ModuleRegistry.registerModules([AllEnterpriseModule])
       if ("license_key" in props.args) {
-      LicenseManager.setLicenseKey(props.args["license_key"])
-      }
-    } else if (enableEnterpriseModules === "enterpriseOnly") {
-      ModuleRegistry.registerModules([AllEnterpriseModule])
-      if ("license_key" in props.args) {
-      LicenseManager.setLicenseKey(props.args["license_key"])
+          LicenseManager.setLicenseKey(props.args["license_key"])
       }
     } else {
       ModuleRegistry.registerModules([AllCommunityModule])
@@ -108,7 +113,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
 
     if (this.state.debug) {
       console.log("***Received Props", props)
-      console.log("*** Processed State", this.state)
+      console.log("***Processed State", this.state)
     }
   }
 
@@ -116,7 +121,6 @@ class AgGrid extends React.Component<ComponentProps, State> {
     let gridOptions: GridOptions = cloneDeep(this.props.args.gridOptions)
 
     if (this.props.args.allow_unsafe_jscode) {
-      console.warn("flag allow_unsafe_jscode is on.")
       gridOptions = deepMap(gridOptions, parseJsCodeFromPython, ["rowData"])
     }
 
@@ -140,9 +144,8 @@ class AgGrid extends React.Component<ComponentProps, State> {
 
     //processTheming
     this.themeParser = new ThemeParser()
-    let agGridTheme = this.props.args.theme
 
-    gridOptions.theme = this.themeParser.parse(agGridTheme)
+    gridOptions.theme = this.themeParser.parse(this.props.args.theme)
 
     return gridOptions
   }
@@ -317,15 +320,11 @@ class AgGrid extends React.Component<ComponentProps, State> {
   }
 
   private cellValueChanged() {
-    console.log(
-      "Data edited on Grid. Ignoring further changes from data paramener (AgGrid(data=dataframe))"
-    )
+    console.log("Data edited on Grid. Ignoring further changes from data paramener")
     this.setState({ isRowDataEdited: true })
   }
 
   public render = (): ReactNode => {
-    let manualUpdate =  this.props.args.manual_update === true
-
     return (
       <div
         id="gridContainer"
@@ -333,7 +332,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
         style={this.defineContainerHeight()}
       >
         <GridToolBar
-          showManualUpdateButton={manualUpdate}
+          showManualUpdateButton={this.props.args.manual_update === true}
           enabled={this.props.args.show_toolbar ?? true}
           showSearch={this.props.args.show_search ?? true}
           showDownloadButton={this.props.args.show_download_button ?? true}
@@ -351,7 +350,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
         <AgGridReact
           onGridReady={(e: GridReadyEvent<any, any>) => this.onGridReady(e)}
           gridOptions={this.state.gridOptions}
-          localeText={localeText}
+          localeText={AG_GRID_LOCALE_BR}
         ></AgGridReact>
       </div>
     )
