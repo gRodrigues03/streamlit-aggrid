@@ -211,3 +211,4 @@ test/screenshots
 output.txt
 test/issues/*
 test/src_original/*
+/bun.lock

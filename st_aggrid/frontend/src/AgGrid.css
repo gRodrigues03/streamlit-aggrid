@@ -70,3 +70,7 @@ div[col-id="ag-Grid-SelectionColumn"] {padding: 0 7px !important}
 .telala tr:last-child td:last-child {
   border-bottom-right-radius: .5rem
 }
+
+:where(.ag-watermark){display:none}
+
+.ag-row-even{background-color:#6792}

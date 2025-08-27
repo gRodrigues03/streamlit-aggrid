@@ -1,53 +1,19 @@
-import os, json, warnings, typing, re, inspect
+import os, json, typing, re
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
-import numpy as np
-from typing import Any, Mapping, Tuple, Union, Literal, Optional
-from enum import IntEnum, Flag, Enum, auto
+from typing import Any, Tuple, Literal, Optional
+from enum import IntEnum
 from collections import defaultdict
 
 
 GRID_OPTIONS = ['statusBar', 'sideBar', 'getContextMenuItems', 'suppressContextMenu', 'preventDefaultOnContextMenu', 'allowContextMenuWithControlKey', 'getMainMenuItems', 'columnMenu', 'suppressMenuHide', 'popupParent', 'postProcessPopup', 'copyHeadersToClipboard', 'copyGroupHeadersToClipboard', 'clipboardDelimiter', 'suppressCutToClipboard', 'suppressCopyRowsToClipboard', 'suppressCopySingleCellRanges', 'suppressLastEmptyLineOnPaste', 'suppressClipboardPaste', 'suppressClipboardApi', 'processCellForClipboard', 'processHeaderForClipboard', 'processGroupHeaderForClipboard', 'processCellFromClipboard', 'sendToClipboard', 'processDataFromClipboard', 'columnDefs', 'defaultColDef', 'defaultColGroupDef', 'columnTypes', 'dataTypeDefinitions', 'maintainColumnOrder', 'suppressFieldDotNotation', 'headerHeight', 'groupHeaderHeight', 'floatingFiltersHeight', 'pivotHeaderHeight', 'pivotGroupHeaderHeight', 'allowDragFromColumnsToolPanel', 'suppressMovableColumns', 'suppressColumnMoveAnimation', 'suppressDragLeaveHidesColumns', 'suppressRowGroupHidesColumns', 'processUnpinnedColumns', 'colResizeDefault', 'autoSizeStrategy', 'suppressAutoSize', 'autoSizePadding', 'skipHeaderOnAutoSize', 'components', 'editType', 'singleClickEdit', 'suppressClickEdit', 'stopEditingWhenCellsLoseFocus', 'enterNavigatesVertically', 'enterNavigatesVerticallyAfterEdit', 'enableCellEditingOnBackspace', 'undoRedoCellEditing', 'undoRedoCellEditingLimit', 'readOnlyEdit', 'defaultCsvExportParams', 'suppressCsvExport', 'defaultExcelExportParams', 'suppressExcelExport', 'excelStyles', 'quickFilterText', 'cacheQuickFilter', 'includeHiddenColumnsInQuickFilter', 'quickFilterParser', 'quickFilterMatcher', 'isExternalFilterPresent', 'doesExternalFilterPass', 'excludeChildrenWhenTreeDataFiltering', 'enableAdvancedFilter', 'includeHiddenColumnsInAdvancedFilter', 'advancedFilterParent', 'advancedFilterBuilderParams', 'enableCharts', 'suppressChartToolPanelsButton', 'getChartToolbarItems', 'createChartContainer', 'chartThemes', 'customChartThemes', 'chartThemeOverrides', 'chartToolPanelsDef', 'chartMenuItems', 'navigateToNextHeader', 'tabToNextHeader', 'navigateToNextCell', 'tabToNextCell', 'loadingCellRenderer', 'loadingCellRendererParams', 'loadingCellRendererSelector', 'localeText', 'getLocaleText', 'masterDetail', 'isRowMaster', 'detailCellRenderer', 'detailCellRendererParams', 'detailRowHeight', 'detailRowAutoHeight', 'embedFullWidthRows', 'keepDetailRows', 'keepDetailRowsCount', 'initialState', 'alignedGrids', 'context', 'tabIndex', 'rowBuffer', 'valueCache', 'valueCacheNeverExpires', 'enableCellExpressions', 'getDocument', 'suppressTouch', 'suppressFocusAfterRefresh', 'suppressBrowserResizeObserver', 'suppressPropertyNamesCheck', 'suppressChangeDetection', 'debug', 'reactiveCustomComponents', 'overlayLoadingTemplate', 'loadingOverlayComponent', 'loadingOverlayComponentParams', 'suppressLoadingOverlay', 'overlayNoRowsTemplate', 'noRowsOverlayComponent', 'noRowsOverlayComponentParams', 'suppressNoRowsOverlay', 'pagination', 'paginationPageSize', 'paginationPageSizeSelector', 'paginationNumberFormatter', 'paginationAutoPageSize', 'paginateChildRows', 'suppressPaginationPanel', 'pivotMode', 'pivotPanelShow', 'pivotDefaultExpanded', 'pivotColumnGroupTotals', 'pivotRowTotals', 'pivotSuppressAutoColumn', 'pivotMaxGeneratedColumns', 'processPivotResultColDef', 'processPivotResultColGroupDef', 'suppressExpandablePivotGroups', 'functionsReadOnly', 'aggFuncs', 'getGroupRowAgg', 'suppressAggFuncInHeader', 'alwaysAggregateAtRootLevel', 'aggregateOnlyChangedColumns', 'suppressAggFilteredOnly', 'groupAggFiltering', 'removePivotHeaderRowWhenSingleValueColumn', 'animateRows', 'cellFlashDuration', 'cellFadeDuration', 'allowShowChangeAfterFilter', 'domLayout', 'ensureDomOrder', 'getBusinessKeyForNode', 'gridId', 'processRowPostCreate', 'enableRtl', 'suppressColumnVirtualisation', 'suppressRowVirtualisation', 'suppressMaxRenderedRowRestriction', 'rowDragManaged', 'rowDragEntireRow', 'rowDragMultiRow', 'suppressRowDrag', 'suppressMoveWhenRowDragging', 'rowDragText', 'fullWidthCellRenderer', 'fullWidthCellRendererParams', 'groupDisplayType', 'groupDefaultExpanded', 'autoGroupColumnDef', 'groupMaintainOrder', 'groupSelectsChildren', 'groupLockGroupColumns', 'groupIncludeFooter', 'groupIncludeTotalFooter', 'groupSuppressBlankHeader', 'groupSelectsFiltered', 'showOpenedGroup', 'isGroupOpenByDefault', 'initialGroupOrderComparator', 'groupRemoveSingleChildren', 'groupRemoveLowestSingleChildren', 'groupHideOpenParents', 'groupAllowUnbalanced', 'rowGroupPanelShow', 'rowGroupPanelSuppressSort', 'groupRowRenderer', 'groupRowRendererParams', 'suppressDragLeaveHidesColumns', 'suppressGroupRowsSticky', 'suppressRowGroupHidesColumns', 'suppressMakeColumnVisibleAfterUnGroup', 'treeData', 'getDataPath', 'pinnedTopRowData', 'pinnedBottomRowData', 'rowModelType', 'getRowId', 'rowData', 'resetRowDataOnUpdate', 'asyncTransactionWaitMillis', 'suppressModelUpdateAfterUpdateTransaction', 'datasource', 'cacheOverflowSize', 'maxConcurrentDatasourceRequests', 'cacheBlockSize', 'maxBlocksInCache', 'infiniteInitialRowCount', 'serverSideDatasource', 'cacheBlockSize', 'maxBlocksInCache', 'maxConcurrentDatasourceRequests', 'blockLoadDebounceMillis', 'purgeClosedRowNodes', 'serverSidePivotResultFieldSeparator', 'serverSideSortAllLevels', 'serverSideEnableClientSideSort', 'serverSideOnlyRefreshFilteredGroups', 'serverSideInitialRowCount', 'getChildCount', 'getServerSideGroupLevelParams', 'isServerSideGroupOpenByDefault', 'isApplyServerSideTransaction', 'isServerSideGroup', 'getServerSideGroupKey', 'viewportDatasource', 'viewportRowModelPageSize', 'viewportRowModelBufferSize', 'alwaysShowHorizontalScroll', 'alwaysShowVerticalScroll', 'debounceVerticalScrollbar', 'suppressHorizontalScroll', 'suppressScrollOnNewData', 'suppressScrollWhenPopupsAreOpen', 'suppressAnimationFrame', 'suppressMiddleClickScrolls', 'suppressPreventDefaultOnMouseWheel', 'scrollbarWidth', 'rowSelection', 'rowMultiSelectWithClick', 'isRowSelectable', 'suppressRowDeselection', 'suppressRowClickSelection', 'suppressCellFocus', 'suppressHeaderFocus', 'suppressMultiRangeSelection', 'enableCellTextSelection', 'enableRangeSelection', 'enableRangeHandle', 'enableFillHandle', 'fillHandleDirection', 'fillOperation', 'suppressClearOnFillReduction', 'sortingOrder', 'accentedSort', 'unSortIcon', 'suppressMultiSort', 'alwaysMultiSort', 'multiSortKey', 'suppressMaintainUnsortedOrder', 'postSortRows', 'deltaSort', 'icons', 'rowHeight', 'getRowHeight', 'rowStyle', 'getRowStyle', 'rowClass', 'getRowClass', 'rowClassRules', 'isFullWidthRow', 'suppressRowHoverHighlight', 'suppressRowTransform', 'columnHoverHighlight', 'enableBrowserTooltips', 'tooltipShowDelay', 'tooltipHideDelay', 'tooltipMouseTrack', 'tooltipShowMode', 'tooltipTrigger', 'tooltipInteraction', 'gridOptions']
 COLUMN_PROPS = ['field', 'colId', 'type', 'cellDataType', 'valueGetter', 'valueFormatter', 'refData', 'keyCreator', 'equals', 'checkboxSelection', 'showDisabledCheckboxes', 'toolPanelClass', 'suppressColumnsToolPanel', 'columnGroupShow', 'icons', 'suppressNavigable', 'suppressKeyboardEvent', 'suppressPaste', 'suppressFillHandle', 'contextMenuItems', 'cellAriaRole', 'hide', 'initialHide', 'lockVisible', 'lockPosition', 'suppressMovable', 'useValueFormatterForExport', 'editable', 'valueSetter', 'valueParser', 'cellEditor', 'cellEditorParams', 'cellEditorSelector', 'cellEditorPopup', 'cellEditorPopupPosition', 'singleClickEdit', 'useValueParserForImport', 'onCellValueChanged', 'onCellClicked', 'onCellDoubleClicked', 'onCellContextMenu', 'filter', 'filterParams', 'filterValueGetter', 'getQuickFilterText', 'floatingFilter', 'floatingFilterComponent', 'floatingFilterComponentParams', 'suppressFiltersToolPanel', 'headerName', 'headerValueGetter', 'headerTooltip', 'headerClass', 'headerComponent', 'headerComponentParams', 'wrapHeaderText', 'autoHeaderHeight', 'menuTabs', 'columnChooserParams', 'mainMenuItems', 'suppressHeaderMenuButton', 'suppressHeaderFilterButton', 'suppressHeaderContextMenu', 'suppressHeaderKeyboardEvent', 'headerCheckboxSelection', 'headerCheckboxSelectionFilteredOnly', 'headerCheckboxSelectionCurrentPageOnly', 'suppressFloatingFilterButton', 'chartDataType', 'pinned', 'initialPinned', 'lockPinned', 'pivot', 'initialPivot', 'pivotIndex', 'initialPivotIndex', 'pivotComparator', 'enablePivot', 'cellStyle', 'cellClass', 'cellClassRules', 'cellRenderer', 'cellRendererParams', 'cellRendererSelector', 'autoHeight', 'wrapText', 'enableCellChangeFlash', 'rowDrag', 'rowDragText', 'rowGroup', 'initialRowGroup', 'rowGroupIndex', 'initialRowGroupIndex', 'enableRowGroup', 'showRowGroup', 'enableValue', 'aggFunc', 'initialAggFunc', 'allowedAggFuncs', 'defaultAggFunc', 'sortable', 'sort', 'initialSort', 'sortIndex', 'initialSortIndex', 'sortingOrder', 'comparator', 'unSortIcon', 'colSpan', 'rowSpan', 'tooltipField', 'tooltipValueGetter', 'tooltipComponent', 'tooltipComponentParams', 'width', 'initialWidth', 'minWidth', 'maxWidth', 'flex', 'initialFlex', 'resizable', 'suppressSizeToFit', 'suppressAutoSize', 'children *', 'groupId', 'marryChildren', 'suppressStickyLabel', 'openByDefault', 'columnGroupShow', 'toolPanelClass', 'suppressColumnsToolPanel', 'suppressFiltersToolPanel', 'suppressSpanHeaderHeight', 'tooltipComponent', 'tooltipComponentParams', 'headerName', 'headerClass', 'headerTooltip', 'headerGroupComponent', 'headerGroupComponentParams']
 
-class GridUpdateMode(Flag):
-    NO_UPDATE = auto()
-    MANUAL = auto()
-    VALUE_CHANGED = auto()
-    SELECTION_CHANGED = auto()
-    FILTERING_CHANGED = auto()
-    SORTING_CHANGED = auto()
-    COLUMN_RESIZED = auto()
-    COLUMN_MOVED = auto()
-    COLUMN_PINNED = auto()
-    COLUMN_VISIBLE = auto()
-
-    MODEL_CHANGED = VALUE_CHANGED | SELECTION_CHANGED | FILTERING_CHANGED | SORTING_CHANGED
-    COLUMN_CHANGED = COLUMN_RESIZED | COLUMN_MOVED | COLUMN_VISIBLE | COLUMN_PINNED
-    GRID_CHANGED = MODEL_CHANGED | COLUMN_CHANGED
-
-
 class DataReturnMode(IntEnum):
     AS_INPUT = 0
     FILTERED = 1
     FILTERED_AND_SORTED = 2
-
-
-class ColumnsAutoSizeMode(IntEnum):
-    NO_AUTOSIZE = 0
-    FIT_ALL_COLUMNS_TO_VIEW = 1
-    FIT_CONTENTS = 2
-
-
-class ExcelExportMode(str, Enum):  # use str mixin so values compare nicely to strings
-    NONE = "NONE"
-    MANUAL = "MANUAL"
-    FILE_BLOB_IN_GRID_RESPONSE = "FILE_BLOB_IN_GRID_RESPONSE"
-    TRIGGER_DOWNLOAD = "TRIGGER_DOWNLOAD"
-    SHEET_BLOB_IN_GRID_RESPONSE = "SHEET_BLOB_IN_GRID_RESPONSE"
-    MULTIPLE_SHEETS = "MULTIPLE_SHEETS"
-
 
 class GridOptionsBuilder:
     """Builder for gridOptions dictionary"""
@@ -61,7 +27,7 @@ class GridOptionsBuilder:
 
     @staticmethod
     def from_dataframe(dataframe, columns=(), **default_column_parameters):
-        type_mapper = {"b":["textColumn"],"i":["numericColumn","numberColumnFilter"],"u":["numericColumn","numberColumnFilter"],"f":["numericColumn","numberColumnFilter"],"c":[],"m":["timedeltaFormat"],"M":["dateColumnFilter","shortDateTimeFormat"],"O":[],"S":[],"U":[],"V":[]}
+        type_mapper = {"b":[],"i":["numericColumn","numberColumnFilter"],"u":["numericColumn","numberColumnFilter"],"f":["numericColumn","numberColumnFilter"],"c":[],"m":["timedeltaFormat"],"M":["dateColumnFilter","shortDateTimeFormat"],"O":[],"S":[],"U":[],"V":[]}
 
         gb = GridOptionsBuilder()
 
@@ -404,25 +370,22 @@ class StAggridTheme(dict):
 
     def withParams(self, **params):
         self["params"].update(params)
-        return self
 
     def withParts(self, *parts):
         self["parts"] = list(set(self["parts"]).union(set(parts)))
-        return self
 
 
-class AgGridReturn(Mapping):
+class AgGridReturn:
     """Class to hold AgGrid call return"""
 
     def __init__(
         self,
         originalData,
         gridOptions=None,
-        data_return_mode=DataReturnMode.AS_INPUT,
+        data_return_mode: DataReturnMode=DataReturnMode.AS_INPUT,
         try_to_convert_back_to_original_types=True,
-        conversion_errors="corce",
+        conversion_errors="coerce",
     ) -> None:
-        super().__init__()
 
         self.__component_value_set = False
 
@@ -493,46 +456,44 @@ class AgGridReturn(Mapping):
             del data["__pandas_index"]
 
         if __try_to_convert_back_to_original_types:
-            original_types = self.grid_response["originalDtypes"]
-            try:
-                original_types.pop("__pandas_index")
-            except:
-                pass
+            original_types = self.grid_response["originalDtypes"].copy()
+            original_types.pop("__pandas_index", None)
 
-            numeric_columns = [
-                k for k, v in original_types.items() if v in ["i", "u", "f"]
-            ]
-            if numeric_columns:
-                data.loc[:, numeric_columns] = data.loc[:, numeric_columns].apply(
-                    pd.to_numeric, errors=self.__conversion_errors
-                )
+            # Map short codes → pandas dtypes
+            dtype_map = {
+                "i": "Int64",  # nullable int
+                "u": "UInt64",  # nullable unsigned int
+                "f": "float64",
+                "O": "string",  # pandas string dtype (better than object+str)
+                "S": "string",
+                "U": "string",
+            }
 
-            text_columns = [
-                k for k, v in original_types.items() if v in ["O", "S", "U"]
-            ]
+            # Separate columns into "safe for astype" vs "need special handling"
+            astype_cast_map = {
+                col: dtype_map[dtype]
+                for col, dtype in original_types.items()
+                if col in data.columns and dtype in dtype_map
+            }
 
-            if text_columns:
-                data.loc[:, text_columns] = data.loc[:, text_columns].applymap(
-                    lambda x: np.nan if x is None else str(x)
-                )
+            datetime_cols = [col for col, dt in original_types.items() if dt == "M" and col in data.columns]
+            timedelta_cols = [col for col, dt in original_types.items() if dt == "m" and col in data.columns]
 
-            date_columns = [k for k, v in original_types.items() if v == "M"]
-            if date_columns:
-                data.loc[:, date_columns] = data.loc[:, date_columns].apply(
+            # ---- conversions ----
+            if astype_cast_map:
+                # Safe batch cast
+                data = data.astype(astype_cast_map, errors="raise")
+
+            if datetime_cols:
+                # Allows coercion of bad dates → NaT
+                data[datetime_cols] = data[datetime_cols].apply(
                     pd.to_datetime, errors=self.__conversion_errors
                 )
 
-            timedelta_columns = [k for k, v in original_types.items() if v == "m"]
-            if timedelta_columns:
-
-                def cast_to_timedelta(s):
-                    try:
-                        return pd.Timedelta(s)
-                    except:
-                        return s
-
-                data.loc[:, timedelta_columns] = data.loc[:, timedelta_columns].apply(
-                    cast_to_timedelta
+            if timedelta_cols:
+                # Allows coercion of bad timedeltas → NaT
+                data[timedelta_cols] = data[timedelta_cols].apply(
+                    pd.to_timedelta, errors=self.__conversion_errors
                 )
 
         return data
@@ -679,27 +640,6 @@ class AgGridReturn(Mapping):
         """Returns information about the event that triggered AgGrid Response"""
         return self.grid_response.get("eventData", None)
 
-    # Backwards compatibility with dict interface
-    def __getitem__(self, __k):
-        try:
-            return getattr(self, __k)
-        except AttributeError:
-            return self.__dict__.__getitem__(__k)
-
-    def __iter__(self):
-        attrs = (x for x in inspect.getmembers(self) if not x[0].startswith("_"))
-        return attrs.__iter__()
-
-    def __len__(self):
-        attrs = [x for x in inspect.getmembers(self) if not x[0].startswith("_")]
-        return attrs.__len__()
-
-    def keys(self):
-        return [x[0] for x in inspect.getmembers(self) if not x[0].startswith("_")]
-
-    def values(self):
-        return [x[1] for x in inspect.getmembers(self) if not x[0].startswith("_")]
-
 
 _comment_re = re.compile(r'/\*[\s\S]*?\*/|(?<![:\\])//.*$', re.MULTILINE)
 _whitespace_re = re.compile(r'\s+')
@@ -750,10 +690,8 @@ def __parse_grid_options(
         gridOptions = gb.build()
 
     # if it is a dict-like object, assumes is valid and use it.
-    elif isinstance(gridOptions_parameter, Mapping):
-        gridOptions = gridOptions_parameter
     else:
-        raise ValueError("gridOptions is invalid.")
+        gridOptions = gridOptions_parameter
 
     return gridOptions
 
@@ -761,7 +699,7 @@ def __parse_grid_options(
 _component_func = components.declare_component("agGrid", path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "build"))
 
 def AgGrid(
-    data: Union[pd.DataFrame, str] = None,
+    data: pd.DataFrame = None,
     gridOptions: typing.Dict = None,
     height: int = 400,
     fit_columns_on_grid_load=False,
@@ -773,7 +711,7 @@ def AgGrid(
     conversion_errors: str = "coerce",
     columns_state=None,
     theme: str | StAggridTheme = None,
-    custom_css=None,
+    custom_css: str | bool =False,
     key: typing.Any = None,
     update_on=(),
     callback=None,
@@ -864,7 +802,7 @@ def AgGrid(
             'material'  -> Ag-grid material theme.
         By default 'streamlit'.
 
-    custom_css : dict, optional
+    custom_css : str, optional
         Custom CSS rules to be added to the component's iframe.
         Defaults to None.
 
@@ -929,17 +867,15 @@ def AgGrid(
     if not isinstance(data, pd.DataFrame):
         try_to_convert_back_to_original_types = False
 
-    custom_css = custom_css or dict()
-
     if height is None:
         gridOptions["domLayout"] = "autoHeight"
 
     if fit_columns_on_grid_load:
-        warnings.warn(
-            DeprecationWarning(
-                "fit_columns_on_grid_load is deprecated and will be removed on next version."
-            )
-        )
+        # warnings.warn(
+        #     DeprecationWarning(
+        #         "fit_columns_on_grid_load is deprecated and will be removed on next version."
+        #     )
+        # )
         gridOptions["autoSizeStrategy"] = {"type": "fitGridWidth"}
 
     response = AgGridReturn(
@@ -964,35 +900,27 @@ def AgGrid(
     else:
         _inner_callback = None
 
-    try:
-        component_value = _component_func(
-            gridOptions=gridOptions,
-            height=height,
-            data_return_mode=data_return_mode,
-            frame_dtypes=frame_dtypes,
-            allow_unsafe_jscode=allow_unsafe_jscode,
-            enable_enterprise_modules=enable_enterprise_modules,
-            license_key=license_key,
-            default=None,
-            columns_state=columns_state,
-            theme=themeObj,
-            custom_css=custom_css,
-            update_on=update_on,
-            key=key,
-            on_change=_inner_callback,
-            show_toolbar=show_toolbar,
-            show_search=show_search,
-            show_download_button=show_download_button,
-        )
+    component_value = _component_func(
+        gridOptions=gridOptions,
+        height=height,
+        data_return_mode=data_return_mode,
+        frame_dtypes=frame_dtypes,
+        allow_unsafe_jscode=allow_unsafe_jscode,
+        enable_enterprise_modules=enable_enterprise_modules,
+        license_key=license_key,
+        default=None,
+        columns_state=columns_state,
+        theme=themeObj,
+        custom_css=custom_css,
+        update_on=update_on,
+        key=key,
+        on_change=_inner_callback,
+        show_toolbar=show_toolbar,
+        show_search=show_search,
+        show_download_button=show_download_button,
+        mode=st.session_state['theme_pref']
+    )
 
-    except Exception as ex:  # components.components.MarshallComponentException as ex:
-        # uses a more complete error message.
-        args = list(ex.args)
-        args[0] += (
-            ". If you're using custom JsCode objects on gridOptions, ensure that allow_unsafe_jscode is True."
-        )
-        # ex = components.components.MarshallComponentException(*args)
-        raise ex
 
     if component_value:
         response._set_component_value(component_value)

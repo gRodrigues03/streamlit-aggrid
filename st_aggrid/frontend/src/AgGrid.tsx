@@ -24,7 +24,7 @@ import { AllEnterpriseModule, LicenseManager } from "ag-grid-enterprise"
 import {debounce, cloneDeep, every, isEqual} from "lodash"
 
 import { columnFormaters } from "./customColumns"
-import { ThemeParser } from "./ThemeParser"
+import { parseTheme } from "./ThemeParser"
 import { getGridReturnValue } from "./utils/agGridReturnUtils"
 
 import "./AgGrid.css"
@@ -65,13 +65,12 @@ class AgGrid extends React.Component<ComponentProps, State> {
   private readonly gridContainerRef: React.RefObject<HTMLDivElement>
   private readonly isGridAutoHeightOn: boolean
   private renderedGridHeightPrevious: number = 0
-  private themeParser: ThemeParser | undefined = undefined
 
   constructor(props: ComponentProps) {
     super(props)
     this.gridContainerRef = React.createRef()
 
-      props.args.custom_css&&addCustomCSS(props.args.custom_css)
+      addCustomCSS((props.args.mode === 'dark' ? ':where(.ag-theme-params-1){--ag-background-color:#0d1217!important}' : '') + (props.args.custom_css || ''))
 
     const enableEnterpriseModules = props.args.enable_enterprise_modules
     if (enableEnterpriseModules === true) {
@@ -143,9 +142,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
     )
 
     //processTheming
-    this.themeParser = new ThemeParser()
-
-    gridOptions.theme = this.themeParser.parse(this.props.args.theme)
+    gridOptions.theme = parseTheme(this.props.args.theme, this.props.args.mode)
 
     return gridOptions
   }
@@ -251,7 +248,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
       let agGridTheme = this.props.args.theme
 
       this.state.api?.updateGridOptions({
-        theme: this.themeParser?.parse(agGridTheme),
+        theme: parseTheme(agGridTheme, this.props.args.mode),
       })
     }
 

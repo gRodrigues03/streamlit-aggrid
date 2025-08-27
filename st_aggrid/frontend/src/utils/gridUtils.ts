@@ -130,7 +130,6 @@ const funcs = {
         const motorista = (params.data.REALIZADO && !params.data.INCOMPLETO_MOTORISTA) ? params.data.MOTORISTA : '';
         const carro = (params.data.REALIZADO && !params.data.INCOMPLETO_CARRO) ? params.data.CARRO : '';
         const desp = ((params.data.MATRICULA_AJUSTOU != 0) && params.data.MATRICULA_AJUSTOU) ? params.data.MATRICULA_AJUSTOU : '';
-        console.log(desp);
 
         const diff_garage = diff_calc(params.data.GARAGEM_PREVISTO, garage);
         const diff_ponto = diff_calc(params.data.PONTO_PREVISTO, ponto);
@@ -165,6 +164,15 @@ const funcs = {
 
     carroParser(params: any){if(!(/^-?\d+$/.test(params.newValue))){return "";}if(params.node.data.EMPRESA=="001"){if(params.newValue.length<6){return params.newValue.padStart(6,"190000")}}else if(params.node.data.EMPRESA=="002"){if(params.newValue.length<4){return params.newValue.padStart(4,"6000")}}else if(params.node.data.EMPRESA=="003"){if(params.newValue.length<5){return params.newValue.padStart(5,"21000")}}return params.newValue},
 
+    turnoParser(params: any) {
+        const value = Number(params.newValue ?? params.value);
+        if (value === 1 || value === 2) {
+            return value;
+        } else {
+            return params.data.GARAGEM > '09:40' ? 2 : 1;
+        }
+    },
+
     seqCarro(params: any){if(params.data.SEQ_CARRO==999){return'EXTRA'}else if(params.data.SEQ_CARRO==888){return'TROCA'}else{return `${params.data.SEQ_CARRO}º`}},
 
     seqGuiaRealtime(params: any) {
@@ -198,6 +206,271 @@ const funcs = {
             } else { return params.data.MOTORISTA; }
         }
         else { return ''; }
+    },
+    consultaGuiaRender(params: any) {
+        const api = params.api;
+
+        api.addEventListener('cellKeyDown', (e:any) => {
+            const key = e.event.key;
+            if (key === 'ArrowDown' || key === 'ArrowUp') {
+                e.event.preventDefault();
+
+                const selectedNode = api.getSelectedNodes()[0];
+                if (!selectedNode) return;
+
+                const allNodes = api.getRenderedNodes();
+
+                const currentIndex = allNodes.indexOf(selectedNode);
+                const nextIndex = key === 'ArrowDown' ? currentIndex + 1 : currentIndex - 1;
+
+                const nextNode = allNodes[nextIndex];
+                if (nextNode) {
+                    nextNode.setSelected(true);
+                    api.ensureIndexVisible(nextNode.rowIndex);
+                }
+            }
+        });
+    },
+
+    motoristaRowColorRealtime_light(params:any) {
+        if (params.data.ANULADO != 999) {
+            return {
+                backgroundColor: '#FC656599',
+                color: '#601',
+                fontWeight: 'bold'
+            };
+        }
+        if (params.data.REALIZADO) {
+            return {
+                backgroundColor: '#65FC6070',
+                color: '#061',
+                fontWeight: 'bold'
+            };
+        }
+        return {
+            backgroundColor: null,
+            color: null,
+            fontWeight: null
+        };
+    },
+
+    motoristaRowColorRealtime_dark(params: any) {
+        if (params.data.ANULADO != 999) {
+            return {
+                backgroundColor: '#6019',
+                color: '#FFBBBB',
+                fontWeight: 'bold'
+            };
+        }
+        if (params.data.REALIZADO) {
+            return {
+                backgroundColor: '#2704',
+                color: '#AEFFAE',
+                fontWeight: 'bold'
+            };
+        }
+        return {
+            backgroundColor: null,
+            color: null,
+            fontWeight: null
+        };
+    },
+
+    motoristaRowColorGuia_light(params: any) {
+        if (params.data.ANULADO != 999) {
+            return {
+                backgroundColor: '#FC656599',
+                color: '#601',
+                fontWeight: 'bold'
+            };
+        }
+        if (params.data.IMPEDIDO || (params.data.ESCALADO != 'nein')) {
+            return {
+                backgroundColor: '#FCFC6599',
+                color: '#660',
+                fontWeight: 'bold'
+            };
+        }
+
+        return {
+            backgroundColor: null,
+            color: null,
+            fontWeight: null
+        };
+    },
+
+    motoristaRowColorGuia_dark(params: any) {
+        if (params.data.ANULADO != 999) {
+            return {
+                backgroundColor: '#6019',
+                color: '#FFBBBB',
+                fontWeight: 'bold'
+            };
+        }
+
+        if (params.data.IMPEDIDO || (params.data.ESCALADO != 'nein')) {
+            return {
+                backgroundColor: '#6609',
+                color: '#FFFFB9',
+                fontWeight: 'bold'
+            };
+        }
+
+        return {
+            backgroundColor: null,
+            color: null,
+            fontWeight: null
+        };
+    },
+
+    motoristaColorRealtime_light(params: any) {
+        if (params.data.IMPEDIDO || (params.data.ESCALADO != 'nein' && !params.data.REALIZADO)) {
+            return {
+                backgroundColor: '#FC656599',
+                color: '#601',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        if (params.data.INCOMPLETO_MOTORISTA) {
+            return {
+                backgroundColor: '#FCFC65',
+                color: '#601',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        if (params.data.MOTORISTA_DIFF) {
+            return {
+                backgroundColor: null,
+                color: 'red',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        return {
+            backgroundColor: null,
+            color: null,
+            fontWeight: null,
+            textAlign: 'center'
+        };
+    },
+
+    motoristaColorRealtime_dark(params: any) {
+        if (params.data.IMPEDIDO || (params.data.ESCALADO != 'nein' && !params.data.REALIZADO)) {
+            return {
+                backgroundColor: '#6019',
+                color: '#FFBBBB',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        if (params.data.INCOMPLETO_MOTORISTA) {
+            return {
+                backgroundColor: '#6119',
+                color: '#FCFC65',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        if (params.data.MOTORISTA_DIFF) {
+            return {
+                backgroundColor: null,
+                color: 'red',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        return {
+            backgroundColor: null,
+            color: null,
+            fontWeight: null,
+            textAlign: 'center'
+        };
+    },
+
+    carroColorRealtime_light(params: any) {
+        if (params.data.INCOMPLETO_CARRO) {
+            return {
+                backgroundColor: '#FCFC65',
+                color: '#601',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        if (params.data.CARRO_DIFF) {
+            return {
+                backgroundColor: null,
+                color: 'red',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        return {
+            backgroundColor: null,
+            color: null,
+            fontWeight: null,
+            textAlign: 'center'
+        };
+    },
+
+    carroColorRealtime_dark(params: any) {
+        if (params.data.INCOMPLETO_CARRO) {
+            return {
+                backgroundColor: '#6119',
+                color: '#FCFC65',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        if (params.data.CARRO_DIFF) {
+            return {
+                backgroundColor: null,
+                color: 'red',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            };
+        }
+        return {
+            backgroundColor: null,
+            color: null,
+            fontWeight: null,
+            textAlign: 'center'
+        };
+    },
+
+    motivoColorRealtime_light(params: any) {
+        if (params.data.IMPEDIDO || (params.data.ESCALADO !== 'nein' && !params.data.REALIZADO)) {
+            return {
+                backgroundColor: '#FC656599',
+                fontWeight: 'bold',
+                color: '#601',
+                textAlign: 'start'
+            };
+        }
+        return {
+            backgroundColor: null,
+        };
+    },
+
+    motivoColorRealtime_dark(params: any) {
+        if (params.data.IMPEDIDO || (params.data.ESCALADO !== 'nein' && !params.data.REALIZADO)) {
+            return {
+                backgroundColor: '#6019',
+                fontWeight: 'bold',
+                color: '#FFBBBB',
+                textAlign: 'start'
+            };
+        }
+        return {
+            backgroundColor: null,
+        };
+    },
+
+    qdIdFormatter(params: any) {
+        const fr = Object.values(params.node.allLeafChildren[0]?.data);
+        const lr = Object.values(params.node.allLeafChildren[params.node.allLeafChildren.length - 1]?.data);
+        return `Tabela ${fr[0]} - ${fr[6]}  à  ${lr[7]}`;
     }
 };
 
