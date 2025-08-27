@@ -90,7 +90,7 @@ const funcs = {
             if (folgando.includes(clickedValue)) { alert(`Motorista ${clickedValue} está de folga`); }
             if (params.node.data['TURNO'] == 1) {
                 if (escalamensal['LINHA'][clickedValue].slice(0, 2) != '99') {
-                    if (runtimeArgs.nome_linhas[params.node.data['LINHA']].slice(0, 5) != 'PLANT' && String(escalamensal['CARRO'][clickedValue]) != 'None' && params.node.data['LINHA'] == escalamensal['LINHA'][clickedValue]) {
+                    if (runtimeArgs.nome_linhas[params.node.data['LINHA']].slice(0, 5) !== 'PLANT' && String(escalamensal['CARRO'][clickedValue]) != 'None' && params.node.data['LINHA'] == escalamensal['LINHA'][clickedValue]) {
                         params.node.setDataValue('CARRO', escalamensal['CARRO'][clickedValue]);
                     }
                 }
