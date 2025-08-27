@@ -37,7 +37,6 @@ interface State {
     isRowDataEdited: boolean
     api?: GridApi
     enterprise_features_enabled: boolean
-    debug: boolean
 }
 
 function deepMap<T>(obj: T, fn: (v: any) => any, keysToIgnore: string[] = []): T {
@@ -64,6 +63,128 @@ function addCustomCSS(custom_css: string): void {
 let runtimeArgs: { [key: string]: any } = {};
 
 const funcs = {
+    cellClickHandlerDiaria(params: any) {
+        const folgando = runtimeArgs.retira_folga;
+        const escalamensal = runtimeArgs.dict_escala_mensal;
+        const impedidos = runtimeArgs.imp;
+        const ddfc = runtimeArgs.ddfc;
+        const clickedColumn = params.column.colId;
+        const clickedValue = params.node.data[clickedColumn];
+        if ((clickedValue === '') || (clickedValue === null)) {
+            params.node.setDataValue(params.column.colId, '');
+            return;
+        }
+        if (clickedColumn === 'MOTORISTA') {
+            if (!ddfc.includes(clickedValue)) {
+                alert('Motorista desconhecido');
+                if (params.oldValue === null) { params.node.setDataValue(params.column.colId, ''); return; }
+                if (!ddfc.includes(params.oldValue)) {
+                    params.node.setDataValue(params.column.colId, '');
+                    return;
+                }
+                params.node.setDataValue(params.column.colId, params.oldValue);
+                return;
+            }
+            params.node.setDataValue(params.column.colId, clickedValue);
+            if (impedidos.includes(Number(clickedValue))) { alert(`Motorista ${clickedValue} possui ocorrência`); }
+            if (folgando.includes(clickedValue)) { alert(`Motorista ${clickedValue} está de folga`); }
+            if (params.node.data['TURNO'] == 1) {
+                if (escalamensal['LINHA'][clickedValue].slice(0, 2) != '99') {
+                    if (runtimeArgs.nome_linhas[params.node.data['LINHA']].slice(0, 5) != 'PLANT' && String(escalamensal['CARRO'][clickedValue]) != 'None' && params.node.data['LINHA'] == escalamensal['LINHA'][clickedValue]) {
+                        params.node.setDataValue('CARRO', escalamensal['CARRO'][clickedValue]);
+                    }
+                }
+            }
+            return;
+        }
+    },
+
+    motoristaColorEscalaDiaria(params: any) {
+        const folgando = runtimeArgs.retira_folga;
+
+        const impedidos = runtimeArgs.imp;
+
+        if (params.value === null) { return {
+            backgroundColor: null,
+                color: null,
+                fontWeight: null
+        }; }
+        if (impedidos.includes(Number(params.value))) {
+            return {
+                backgroundColor: '#ffcccc',
+                    color: '#000',
+                    fontWeight: 'bold'
+            };
+        }
+        if (folgando.includes(params.value)) {
+            return {
+                backgroundColor: '#f0f0aa',
+                    color: '#000',
+                    fontWeight: 'bold'
+            };
+        }
+        return {
+            backgroundColor: null,
+                color: null,
+                fontWeight: null
+        };
+    },
+
+    cellClickHandlerEscalaInsert(params: any) {
+        const linhas_permitidas = runtimeArgs.linhas_permitidas;
+        const ddfc = runtimeArgs.ddfc;
+
+        const clickedColumn = params.column.colId;
+        const clickedValue = params.node.data[clickedColumn];
+
+        if (((clickedValue === '') || (clickedValue === null)) && clickedColumn !== 'FOLGA') {
+            params.node.setDataValue(params.column.colId, '');
+            return;
+        }
+
+        if (clickedColumn === 'MOTORISTA') {
+            if (!ddfc.includes(clickedValue)) {
+                alert('Motorista desconhecido');
+
+                if (params.oldValue === null) { params.node.setDataValue(params.column.colId, ''); return; }
+
+                if (!ddfc.includes(params.oldValue)) {
+                    params.node.setDataValue(params.column.colId, '');
+                    return;
+                }
+
+                params.node.setDataValue(params.column.colId, params.oldValue);
+                return;
+            }
+            params.node.setDataValue(params.column.colId, clickedValue);
+        }
+        else if (clickedColumn === 'LINHA'){
+            let res = clickedValue.toUpperCase();
+            let resp = clickedValue.toUpperCase() + 'P';
+            let rest = clickedValue.toUpperCase() + 'T';
+            let resi = clickedValue.toUpperCase() + 'I';
+            if (linhas_permitidas.includes(res)) {
+                params.node.setDataValue('LINHA', res);
+                return;
+            } else if (linhas_permitidas.includes(resp)) {
+                params.node.setDataValue('LINHA', resp);
+                return;
+            } else if (linhas_permitidas.includes(rest)) {
+                params.node.setDataValue('LINHA', rest);
+                return;
+            } else if (linhas_permitidas.includes(resi)) {
+                params.node.setDataValue('LINHA', resi);
+                return;
+            } else { alert('Linha ' + res + ' não cadastrada para a empresa ' + runtimeArgs.empresa);
+                params.node.setDataValue('LINHA', '');
+                return; }
+        }
+        else if (clickedColumn === 'GARAGEM') {
+            if (clickedValue > '09:40') { params.node.setDataValue('TURNO', 2); }
+            else { params.node.setDataValue('TURNO', 1); }
+        }
+    },
+
     cellClickHandlerMensal(params: any) {
         const padroes = runtimeArgs.padroes;
         const ddfc = runtimeArgs.ddfc;
@@ -687,8 +808,15 @@ class AgGrid extends React.Component<ComponentProps, State> {
 
     this.isGridAutoHeightOn = this.props.args.gridOptions?.domLayout === "autoHeight"
 
-    runtimeArgs.padroes = props.args.padroes
       runtimeArgs.ddfc = props.args.ddfc
+      runtimeArgs.padroes = props.args.padroes
+      runtimeArgs.empresa = props.args.empresa
+      runtimeArgs.linhas_permitidas = props.args.linhas_permitidas
+      runtimeArgs.nome_linhas = props.args.nome_linhas
+      runtimeArgs.imp = props.args.imp
+      runtimeArgs.retira_folga = props.args.retira_folga
+      runtimeArgs.dict_escala_mensal = props.args.dict_escala_mensal
+
 
     const go = this.parseGridoptions()
 
@@ -711,13 +839,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
       isRowDataEdited: false,
       api: undefined,
       enterprise_features_enabled: props.args.enable_enterprise_modules,
-      debug: false,
     } as State
-
-    if (this.state.debug) {
-      console.log("***Received Props", props)
-      console.log("***Processed State", this.state)
-    }
   }
 
   private parseGridoptions() {
@@ -819,9 +941,6 @@ class AgGrid extends React.Component<ComponentProps, State> {
   }
 
   private returnGridValue(e: any, streamlitRerunEventTriggerName: string) {
-    if (this.state.debug) {
-      console.log(`refreshing grid from ${streamlitRerunEventTriggerName}`)
-    }
     this.getGridReturnValue(e, streamlitRerunEventTriggerName).then((v) =>
       Streamlit.setComponentValue(v)
     )
