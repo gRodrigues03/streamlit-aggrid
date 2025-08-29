@@ -1,8 +1,5 @@
 import { compareAsc, format, parseISO } from "date-fns"
 
-import { duration } from "moment"
-
-
 //TODO: mover formaters to gridOptionsBuilder options
 function dateFormatter(isoString: string, formaterString: string): String {
   try {
@@ -22,15 +19,9 @@ const columnFormaters = {
         compareAsc(parseISO(cellValue), filterValue),
     },
   },
-  numberColumnFilter: {
-    filter: "agNumberColumnFilter",
-  },
   shortDateTimeFormat: {
     valueFormatter: (params: any) =>
       dateFormatter(params.value, "dd/MM/yyyy HH:mm"),
-  },
-  timedeltaFormat: {
-    valueFormatter: (params: any) => duration(params.value).humanize(true),
   },
 }
 

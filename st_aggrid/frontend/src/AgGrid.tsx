@@ -1040,7 +1040,6 @@ class AgGrid extends React.Component<ComponentProps, State> {
   }
 
   private cellValueChanged() {
-    console.log("Data edited on Grid. Ignoring further changes from data paramener")
     this.setState({ isRowDataEdited: true })
   }
 
@@ -1062,9 +1061,6 @@ class AgGrid extends React.Component<ComponentProps, State> {
           }}
           onDownloadClick={() => {
         this.state.api?.exportDataAsCsv();
-          }}
-          onManualUpdateClick={() => {
-        console.log("Manual update triggered");
           }}
         />
         <AgGridReact
