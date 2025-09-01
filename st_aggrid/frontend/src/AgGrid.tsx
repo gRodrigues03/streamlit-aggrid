@@ -23,7 +23,7 @@ import { AllEnterpriseModule, LicenseManager } from "ag-grid-enterprise"
 
 import {debounce, cloneDeep, every, isEqual} from "lodash"
 
-import { columnFormaters } from "./customColumns"
+import { format, parseISO } from "date-fns"
 import { parseTheme } from "./ThemeParser"
 import { getGridReturnValue } from "./utils/agGridReturnUtils"
 
@@ -744,8 +744,10 @@ const funcs = {
     rtPonto(params: any){if(params.data.PONTO_DIFF){return{color:'red',fontWeight:'bold'}}return null},
     qtdFormatterGuiasEscaneadas(params: any){if(params.data.count>0){return `${params.data.count} a mais`}else if(params.data.count<0){return `${Math.abs(params.data.count)} faltando`}return'Quantidade OK'},
 
-    rowColorViagem_light(params: any){if(params.data.DUPLICADO){return{color:'#601',backgroundColor:'#FCFC65'}}return null},
-    rowColorViagem_dark(params: any){if(params.data.DUPLICADO){return{color:'#FFBBBB',backgroundColor:'#6019'}}return null}
+    rowColorViagem_light(p: any){if(p.data.DUPLICADO){return{color:'#601',backgroundColor:'#FCFC65'}}return null},
+    rowColorViagem_dark(p: any){if(p.data.DUPLICADO){return{color:'#FFBBBB',backgroundColor:'#6019'}}return null},
+    shortDateFormatter(p: any){try {return format(parseISO(p.value), "dd/MM/yyyy")} catch {return p.value}},
+    dateTimeFormatter(p: any){try {return format(parseISO(p.value), "dd/MM/yyyy HH:mm")} catch {return p.value}},
 };
 
 
@@ -843,12 +845,6 @@ class AgGrid extends React.Component<ComponentProps, State> {
     if (!("getRowId" in gridOptions)) {
       console.warn("getRowId was not set. Grid may behave bad when updating.")
     }
-
-    //adds custom columnFormatters
-    gridOptions.columnTypes = Object.assign(
-      gridOptions.columnTypes || {},
-      columnFormaters
-    )
 
     //processTheming
     gridOptions.theme = parseTheme(this.props.args.theme, this.props.args.mode)
