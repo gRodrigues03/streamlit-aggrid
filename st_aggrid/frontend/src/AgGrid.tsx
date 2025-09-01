@@ -534,11 +534,7 @@ const funcs = {
                 fontWeight: 'bold'
             };
         }
-        return {
-            backgroundColor: null,
-            color: null,
-            fontWeight: null
-        };
+        return null
     },
 
     motoristaRowColorRealtime_dark(params: any) {
@@ -556,11 +552,7 @@ const funcs = {
                 fontWeight: 'bold'
             };
         }
-        return {
-            backgroundColor: null,
-            color: null,
-            fontWeight: null
-        };
+        return null
     },
 
     motoristaRowColorGuia_light(params: any) {
@@ -579,11 +571,7 @@ const funcs = {
             };
         }
 
-        return {
-            backgroundColor: null,
-            color: null,
-            fontWeight: null
-        };
+        return null
     },
 
     motoristaRowColorGuia_dark(params: any) {
@@ -603,11 +591,7 @@ const funcs = {
             };
         }
 
-        return {
-            backgroundColor: null,
-            color: null,
-            fontWeight: null
-        };
+        return null
     },
 
     motoristaColorRealtime_light(params: any) {
@@ -735,9 +719,7 @@ const funcs = {
                 textAlign: 'start'
             };
         }
-        return {
-            backgroundColor: null,
-        };
+        return null
     },
 
     motivoColorRealtime_dark(params: any) {
@@ -749,9 +731,7 @@ const funcs = {
                 textAlign: 'start'
             };
         }
-        return {
-            backgroundColor: null,
-        };
+        return null
     },
 
     qdIdFormatter(params: any) {
@@ -760,9 +740,12 @@ const funcs = {
         return `Tabela ${fr[0]} - ${fr[6]}  à  ${lr[7]}`;
     },
 
-    rtGaragem(params: any){if(params.data.GARAGE_DIFF){return{color:'red',fontWeight:'bold'}}return{color:null,fontWeight:null}},
-    rtPonto(params: any){if(params.data.PONTO_DIFF){return{color:'red',fontWeight:'bold'}}return{color:null,fontWeight:null}},
-    qtdFormatterGuiasEscaneadas(params: any){if(params.data.count>0){return `${params.data.count} a mais`}else if(params.data.count<0){return `${Math.abs(params.data.count)} faltando`}return'Quantidade OK'}
+    rtGaragem(params: any){if(params.data.GARAGE_DIFF){return{color:'red',fontWeight:'bold'}}return null},
+    rtPonto(params: any){if(params.data.PONTO_DIFF){return{color:'red',fontWeight:'bold'}}return null},
+    qtdFormatterGuiasEscaneadas(params: any){if(params.data.count>0){return `${params.data.count} a mais`}else if(params.data.count<0){return `${Math.abs(params.data.count)} faltando`}return'Quantidade OK'},
+
+    rowColorViagem_light(params: any){if(params.data.DUPLICADO){return{color:'#601',backgroundColor:'#FCFC65'}}return null},
+    rowColorViagem_dark(params: any){if(params.data.DUPLICADO){return{color:'#FFBBBB',backgroundColor:'#6019'}}return null}
 };
 
 
