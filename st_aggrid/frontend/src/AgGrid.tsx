@@ -830,9 +830,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
   private parseGridoptions() {
     let gridOptions: GridOptions = cloneDeep(this.props.args.gridOptions)
 
-    if (this.props.args.allow_unsafe_jscode) {
-      gridOptions = deepMap(gridOptions, parseJsCodeFromPython, ["rowData"])
-    }
+    gridOptions = deepMap(gridOptions, parseJsCodeFromPython, ["rowData"])
 
     //Sets getRowID if data came from a pandas dataframe like object. (has __pandas_index)
     if (every(gridOptions.rowData, (o) => "__pandas_index" in o)) {
