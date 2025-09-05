@@ -63,6 +63,146 @@ function addCustomCSS(custom_css: string): void {
 let runtimeArgs: { [key: string]: any } = {};
 
 const funcs = {
+
+    cellClickHandlerEscalaInsert_fd(p: any) {
+        const linhas_permitidas = runtimeArgs.linhas_permitidas;
+        const ddfc = runtimeArgs.ddfc;
+
+        if (p.newValue === null) {
+            p.node.setDataValue(p.column.colId, null);
+            return;
+        }
+        if (p.newValue === '') {
+            p.node.setDataValue(p.column.colId, '');
+            return;
+        }
+
+        if (p.column.colId === 'MATRICULA') {
+            if (!ddfc.includes(String(p.newValue))) {
+                alert('Matrícula inválida');
+
+                if (p.oldValue === null) { p.node.setDataValue(p.column.colId, ''); return; }
+
+                if (!ddfc.includes(String(p.oldValue))) {
+                    p.node.setDataValue(p.column.colId, '');
+                    return;
+                }
+
+                p.node.setDataValue(p.column.colId, p.oldValue);
+                return;
+            }
+            p.node.setDataValue(p.column.colId, p.newValue);
+        }
+        else if (p.column.colId === 'PT') {
+            let res = p.newValue.toUpperCase();
+            if (linhas_permitidas.includes(res)) {
+                p.node.setDataValue('PT', res);
+                return;
+            } else { alert('PT ' + res + ' não cadastrado');
+                p.node.setDataValue('PT', '');
+                return;
+            }
+        }
+    },
+
+    cellClickHandlerDiaria_fd(p: any) {
+        const folgando = runtimeArgs.retira_folga;
+        const impedidos = runtimeArgs.imp;
+        const ddfc = runtimeArgs.ddfc;
+        const clickedColumn = p.column.colId;
+        const clickedValue = p.node.data[clickedColumn];
+        if (clickedValue === null) {
+            p.node.setDataValue(p.column.colId, null);
+            return;
+        }
+        if (clickedValue === '') {
+            p.node.setDataValue(p.column.colId, '');
+            return;
+        }
+        if (clickedColumn === 'MATRICULA') {
+            if (!ddfc.includes(String(clickedValue))) {
+                alert('Matrícula inválida');
+                if (p.oldValue === null) { p.node.setDataValue(p.column.colId, null); return; }
+                if (!ddfc.includes(String(p.oldValue))) {
+                    p.node.setDataValue(p.column.colId, null);
+                    return;
+                }
+                p.node.setDataValue(p.column.colId, p.oldValue);
+                return;
+            }
+            p.node.setDataValue(p.column.colId, clickedValue);
+            if (impedidos.includes(clickedValue)) { alert(`Funcionário ${clickedValue} possui ocorrência`); }
+            if (folgando.includes(clickedValue)) { alert(`Funcionário ${clickedValue} está de folga`); }
+            return;
+        }
+    },
+
+    cellClickHandlerMensal_fd(p: any) {
+        const padroes = runtimeArgs.padroes;
+        const ddfc = runtimeArgs.ddfc;
+        const clickedColumn = p.column.colId;
+        const clickedValue = p.node.data[clickedColumn];
+
+        if (clickedColumn !== 'FOLGA') {
+            if (clickedValue === null) {
+                p.node.setDataValue(p.column.colId, null);
+                return;
+            }
+            if (clickedValue === '') {
+                p.node.setDataValue(p.column.colId, '');
+                return;
+            }
+        }
+
+        if (clickedColumn === 'MATRICULA') {
+            if (!ddfc.includes(String(clickedValue))) {
+                alert('Matrícula inválida');
+
+                if (p.oldValue === null) { p.node.setDataValue(p.column.colId, null); return; }
+
+                if (!ddfc.includes(String(p.oldValue))) {
+                    p.node.setDataValue(p.column.colId, null);
+                    return;
+                }
+
+                p.node.setDataValue(p.column.colId, p.oldValue);
+                return;
+            }
+            p.node.setDataValue(p.column.colId, clickedValue);
+        }
+        else if (clickedColumn === 'PADRAO_FOLGA') {
+            const temp = clickedValue.toUpperCase();
+            p.node.setDataValue('PADRAO_FOLGA', temp);
+            p.node.setDataValue('PADRAO_ALTERADO', 0);
+
+            try { p.node.setDataValue('FOLGA', padroes[temp].split(', ')); }
+            catch { p.node.setDataValue('FOLGA', []); }
+            return;
+        }
+        else if (clickedColumn === 'FOLGA') {
+            let FOLGA = clickedValue;
+            if (FOLGA === null) { p.node.setDataValue('PADRAO_FOLGA', ''); p.node.setDataValue('FOLGA', []); p.node.setDataValue('PADRAO_ALTERADO', 0); return; }
+            let PADRAO_FOLGA = p.node.data['PADRAO_FOLGA'].toUpperCase();
+            if (FOLGA.length > 0) { if (FOLGA[0] == '') { FOLGA = FOLGA.slice(1); } }
+            if (FOLGA.length === 0) { p.node.setDataValue('PADRAO_FOLGA', ''); p.node.setDataValue('PADRAO_ALTERADO', 0); return; }
+            try {
+                if ((clickedValue == padroes[PADRAO_FOLGA]) || (clickedValue.join(', ') == padroes[PADRAO_FOLGA])) {
+                    p.node.setDataValue('PADRAO_ALTERADO', 0);
+                    p.node.setDataValue('FOLGA', FOLGA);
+                    return;
+                }
+            } catch {
+                p.node.setDataValue('PADRAO_ALTERADO', 1);
+                p.node.setDataValue('FOLGA', FOLGA);
+                return;
+            }
+            p.node.setDataValue('PADRAO_ALTERADO', 1);
+            p.node.setDataValue('FOLGA', FOLGA);
+            return;
+        }
+    },
+
+
     cellClickHandlerDiaria(params: any) {
         const folgando = runtimeArgs.retira_folga;
         const escalamensal = runtimeArgs.dict_escala_mensal;
@@ -322,10 +462,10 @@ const funcs = {
         if ((
             (params.data.ID.includes('TU') && params.data.SEQ_GUIA > 2) ||
             (!params.data.ID.includes('TU') && params.data.SEQ_GUIA > 1)
-        ) && params.data.SEQ_GUIA != 999) {
+        ) && params.data.SEQ_GUIA != 999 && params.data.TROCOU_CARRO == 1) {
             return `Motorista trocou de carro`;
         }
-        if ((params.data.TROCA_CARRO > 1) && (params.data.TROCA_CARRO != 9)) {
+        if ((params.data.TROCOU_CARRO == 1) && (params.data.TROCA_CARRO != 9)) {
             return `Troca de motorista`;
         }
     },
@@ -748,6 +888,8 @@ const funcs = {
     rowColorViagem_dark(p: any){if(p.data.DUPLICADO){return{color:'#FFBBBB',backgroundColor:'#6019'}}return null},
     shortDateFormatter(p: any){try {return format(parseISO(p.value), "dd/MM/yyyy")} catch {return p.value}},
     dateTimeFormatter(p: any){try {return format(parseISO(p.value), "dd/MM/yyyy HH:mm")} catch {return p.value}},
+
+    nameFormatter(p: any) {const ddfc=runtimeArgs.ddfc_list;if(p.value in ddfc){return `${p.value} - ${ddfc[p.value]}`}}
 };
 
 
@@ -801,6 +943,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
       runtimeArgs.imp = props.args.imp
       runtimeArgs.retira_folga = props.args.retira_folga
       runtimeArgs.dict_escala_mensal = props.args.dict_escala_mensal
+      runtimeArgs.ddfc_list = props.args.ddfc_list
 
 
     const go = this.parseGridoptions()
