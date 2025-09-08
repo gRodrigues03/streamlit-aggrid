@@ -889,7 +889,10 @@ const funcs = {
     shortDateFormatter(p: any){try {return format(parseISO(p.value), "dd/MM/yyyy")} catch {return p.value}},
     dateTimeFormatter(p: any){try {return format(parseISO(p.value), "dd/MM/yyyy HH:mm")} catch {return p.value}},
 
-    nameFormatter(p: any) {const ddfc=runtimeArgs.ddfc_list;if(p.value in ddfc){return `${p.value} - ${ddfc[p.value]}`}}
+    nameFormatter(p: any) {const ddfc=runtimeArgs.ddfc_list;if(p.value in ddfc){return `${p.value} - ${ddfc[p.value]}`}},
+
+    tipoPontoFormatter(p: any) {return ['Início de Jornada', 'Início do Intervalo', 'Fim do Intervalo', 'Fim de Jornada'][p.value]},
+    latLonFormatter(p: any) {return `${p.data.LATITUDE}, ${p.data.LONGITUDE}`}
 };
 
 
