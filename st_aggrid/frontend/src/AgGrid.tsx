@@ -541,7 +541,7 @@ const funcs = {
         private eGui!: any;
         init(params: any) {
             this.eGui = document.createElement('div');
-            this.eGui.style.overflowX = "auto";
+            this.eGui.style.cssText = "overflow:auto;height:inherit;width:inherit";
             const diff_calc = ((start: any, end: any) => {
                 if (!start || !end) return "--:--";
                 const a = start.split(":").reduce((h: any,m: any) => h*60 + +m, 0);
