@@ -892,7 +892,41 @@ const funcs = {
     nameFormatter(p: any) {const ddfc=runtimeArgs.ddfc_list;if(p.value in ddfc){return `${p.value} - ${ddfc[p.value]}`}},
 
     tipoPontoFormatter(p: any) {return ['Início de Jornada', 'Início do Intervalo', 'Fim do Intervalo', 'Fim de Jornada'][p.value]},
-    latLonFormatter(p: any) {return `${p.data.LATITUDE}, ${p.data.LONGITUDE}`}
+    latLonFormatter(p: any) {return `${p.data.LATITUDE}, ${p.data.LONGITUDE}`},
+    diffChegadaSaida(p: any): string {
+    if (!p.data.HORA_CHEGADA || !p.data.HORA_SAIDA) return "--:--";
+
+    const toMinutes = (time: string) =>
+        time.split(":").map(Number).reduce((h, m) => h * 60 + m);
+
+    let arrival = toMinutes(p.data.HORA_CHEGADA);
+    const departure = toMinutes(p.data.HORA_SAIDA);
+
+    if (arrival < departure) arrival += 1440; // add 24h if wrapped past midnight
+
+    const diff = arrival - departure;
+    const hours = Math.floor(diff / 60);
+    const minutes = diff % 60;
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    },
+    diffSaidaChegada(p: any): string {
+        if (!p.data.HORA_CHEGADA || !p.data.HORA_SAIDA) return "--:--";
+
+        const toMinutes = (time: string) =>
+            time.split(":").map(Number).reduce((h, m) => h * 60 + m);
+
+        let arrival = toMinutes(p.data.HORA_SAIDA);
+        const departure = toMinutes(p.data.HORA_CHEGADA);
+
+        if (arrival < departure) arrival += 1440; // add 24h if wrapped past midnight
+
+        const diff = arrival - departure;
+        const hours = Math.floor(diff / 60);
+        const minutes = diff % 60;
+
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    }
 };
 
 
