@@ -29,7 +29,20 @@ import { getGridReturnValue } from "./utils/agGridReturnUtils"
 
 import "./AgGrid.css"
 
-import GridToolBar from "./components/GridToolBar"
+// import GridToolBar from "./components/GridToolBar"
+// <GridToolBar
+// showManualUpdateButton={this.props.args.manual_update === true}
+// enabled={this.props.args.show_toolbar ?? true}
+// showSearch={this.props.args.show_search ?? true}
+// showDownloadButton={this.props.args.show_download_button ?? true}
+// onQuickSearchChange={(value) => {
+//     this.state.api?.setGridOption("quickFilterText", value);
+//     this.state.api?.hideOverlay(); // Hide any overlay if present
+// }}
+// onDownloadClick={() => {
+//     this.state.api?.exportDataAsCsv();
+// }}
+// />
 
 interface State {
     gridHeight: number
@@ -1207,24 +1220,11 @@ class AgGrid extends React.Component<ComponentProps, State> {
         ref={this.gridContainerRef}
         style={this.defineContainerHeight()}
       >
-        <GridToolBar
-          showManualUpdateButton={this.props.args.manual_update === true}
-          enabled={this.props.args.show_toolbar ?? true}
-          showSearch={this.props.args.show_search ?? true}
-          showDownloadButton={this.props.args.show_download_button ?? true}
-          onQuickSearchChange={(value) => {
-        this.state.api?.setGridOption("quickFilterText", value);
-        this.state.api?.hideOverlay(); // Hide any overlay if present
-          }}
-          onDownloadClick={() => {
-        this.state.api?.exportDataAsCsv();
-          }}
-        />
         <AgGridReact
-          onGridReady={(e: GridReadyEvent<any, any>) => this.onGridReady(e)}
+          onGridReady={(e: GridReadyEvent) => this.onGridReady(e)}
           gridOptions={this.state.gridOptions}
           localeText={AG_GRID_LOCALE_BR}
-        ></AgGridReact>
+        />
       </div>
     )
   }
