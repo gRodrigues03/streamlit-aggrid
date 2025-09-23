@@ -963,7 +963,7 @@ class AgGrid extends React.Component<ComponentProps, State> {
   public state: State
 
   private readonly gridContainerRef: React.RefObject<HTMLDivElement>
-  private readonly isGridAutoHeightOn: boolean
+  private isGridAutoHeightOn: boolean
   private renderedGridHeightPrevious: number = 0
 
   constructor(props: ComponentProps) {
@@ -1199,6 +1199,8 @@ class AgGrid extends React.Component<ComponentProps, State> {
         }
       })
     }
+
+    if (this.isGridAutoHeightOn) {Streamlit.setFrameHeight()}
 
     //If there is any event onGridReady in gridOptions, fire it
     let { onGridReady } = this.state.gridOptions
