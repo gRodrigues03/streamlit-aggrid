@@ -939,6 +939,24 @@ const funcs = {
         const minutes = diff % 60;
 
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    },
+
+    diffJornadaTotal(p: any): string {
+        if (!p.data.GARAGEM || !p.data.TERMINO_JORNADA) return "--:--";
+
+        const toMinutes = (time: string) =>
+            time.split(":").map(Number).reduce((h, m) => h * 60 + m);
+
+        let arrival = toMinutes(p.data.TERMINO_JORNADA);
+        const departure = toMinutes(p.data.GARAGEM);
+
+        if (arrival < departure) arrival += 1440; // add 24h if wrapped past midnight
+
+        const diff = arrival - departure;
+        const hours = Math.floor(diff / 60);
+        const minutes = diff % 60;
+
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     }
 };
 
