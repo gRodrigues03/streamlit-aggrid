@@ -1,31 +1,31 @@
-import { AgGridReact } from "ag-grid-react"
-import React, { ReactNode } from "react"
+import {AgGridReact} from "ag-grid-react"
+import React, {ReactNode} from "react"
 
 import {
-  ComponentProps,
-  Streamlit,
-  withStreamlitConnection,
+    ComponentProps,
+    Streamlit,
+    withStreamlitConnection,
 } from "streamlit-component-lib"
 
 import {
-  AllCommunityModule,
-  DetailGridInfo,
-  GetRowIdParams,
-  GridApi,
-  GridOptions,
-  GridReadyEvent,
-  ModuleRegistry,
+    AllCommunityModule,
+    DetailGridInfo,
+    GetRowIdParams,
+    GridApi,
+    GridOptions,
+    GridReadyEvent,
+    ModuleRegistry,
 } from "ag-grid-community"
 
-import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale'
+import {AG_GRID_LOCALE_BR} from '@ag-grid-community/locale'
 
-import { AllEnterpriseModule, LicenseManager } from "ag-grid-enterprise"
+import {AllEnterpriseModule, LicenseManager} from "ag-grid-enterprise"
 
 import {debounce, cloneDeep, every, isEqual} from "lodash"
 
-import { format, parseISO } from "date-fns"
-import { parseTheme } from "./ThemeParser"
-import { getGridReturnValue } from "./utils/agGridReturnUtils"
+import {format, parseISO} from "date-fns"
+import {parseTheme} from "./ThemeParser"
+import {getGridReturnValue} from "./utils/agGridReturnUtils"
 
 import "./AgGrid.css"
 
@@ -94,7 +94,10 @@ const funcs = {
             if (!ddfc.includes(String(p.newValue))) {
                 alert('Matrícula inválida');
 
-                if (p.oldValue === null) { p.node.setDataValue(p.column.colId, ''); return; }
+                if (p.oldValue === null) {
+                    p.node.setDataValue(p.column.colId, '');
+                    return;
+                }
 
                 if (!ddfc.includes(String(p.oldValue))) {
                     p.node.setDataValue(p.column.colId, '');
@@ -105,13 +108,13 @@ const funcs = {
                 return;
             }
             p.node.setDataValue(p.column.colId, p.newValue);
-        }
-        else if (p.column.colId === 'PT') {
+        } else if (p.column.colId === 'PT') {
             let res = p.newValue.toUpperCase();
             if (linhas_permitidas.includes(res)) {
                 p.node.setDataValue('PT', res);
                 return;
-            } else { alert('PT ' + res + ' não cadastrado');
+            } else {
+                alert('PT ' + res + ' não cadastrado');
                 p.node.setDataValue('PT', '');
                 return;
             }
@@ -135,7 +138,10 @@ const funcs = {
         if (clickedColumn === 'MATRICULA') {
             if (!ddfc.includes(String(clickedValue))) {
                 alert('Matrícula inválida');
-                if (p.oldValue === null) { p.node.setDataValue(p.column.colId, null); return; }
+                if (p.oldValue === null) {
+                    p.node.setDataValue(p.column.colId, null);
+                    return;
+                }
                 if (!ddfc.includes(String(p.oldValue))) {
                     p.node.setDataValue(p.column.colId, null);
                     return;
@@ -144,8 +150,12 @@ const funcs = {
                 return;
             }
             p.node.setDataValue(p.column.colId, clickedValue);
-            if (impedidos.includes(clickedValue)) { alert(`Funcionário ${clickedValue} possui ocorrência`); }
-            if (folgando.includes(clickedValue)) { alert(`Funcionário ${clickedValue} está de folga`); }
+            if (impedidos.includes(clickedValue)) {
+                alert(`Funcionário ${clickedValue} possui ocorrência`);
+            }
+            if (folgando.includes(clickedValue)) {
+                alert(`Funcionário ${clickedValue} está de folga`);
+            }
             return;
         }
     },
@@ -171,7 +181,10 @@ const funcs = {
             if (!ddfc.includes(String(clickedValue))) {
                 alert('Matrícula inválida');
 
-                if (p.oldValue === null) { p.node.setDataValue(p.column.colId, null); return; }
+                if (p.oldValue === null) {
+                    p.node.setDataValue(p.column.colId, null);
+                    return;
+                }
 
                 if (!ddfc.includes(String(p.oldValue))) {
                     p.node.setDataValue(p.column.colId, null);
@@ -182,22 +195,36 @@ const funcs = {
                 return;
             }
             p.node.setDataValue(p.column.colId, clickedValue);
-        }
-        else if (clickedColumn === 'PADRAO_FOLGA') {
+        } else if (clickedColumn === 'PADRAO_FOLGA') {
             const temp = clickedValue.toUpperCase();
             p.node.setDataValue('PADRAO_FOLGA', temp);
             p.node.setDataValue('PADRAO_ALTERADO', 0);
 
-            try { p.node.setDataValue('FOLGA', padroes[temp].split(', ')); }
-            catch { p.node.setDataValue('FOLGA', []); }
+            try {
+                p.node.setDataValue('FOLGA', padroes[temp].split(', '));
+            } catch {
+                p.node.setDataValue('FOLGA', []);
+            }
             return;
-        }
-        else if (clickedColumn === 'FOLGA') {
+        } else if (clickedColumn === 'FOLGA') {
             let FOLGA = clickedValue;
-            if (FOLGA === null) { p.node.setDataValue('PADRAO_FOLGA', ''); p.node.setDataValue('FOLGA', []); p.node.setDataValue('PADRAO_ALTERADO', 0); return; }
+            if (FOLGA === null) {
+                p.node.setDataValue('PADRAO_FOLGA', '');
+                p.node.setDataValue('FOLGA', []);
+                p.node.setDataValue('PADRAO_ALTERADO', 0);
+                return;
+            }
             let PADRAO_FOLGA = p.node.data['PADRAO_FOLGA'].toUpperCase();
-            if (FOLGA.length > 0) { if (FOLGA[0] == '') { FOLGA = FOLGA.slice(1); } }
-            if (FOLGA.length === 0) { p.node.setDataValue('PADRAO_FOLGA', ''); p.node.setDataValue('PADRAO_ALTERADO', 0); return; }
+            if (FOLGA.length > 0) {
+                if (FOLGA[0] == '') {
+                    FOLGA = FOLGA.slice(1);
+                }
+            }
+            if (FOLGA.length === 0) {
+                p.node.setDataValue('PADRAO_FOLGA', '');
+                p.node.setDataValue('PADRAO_ALTERADO', 0);
+                return;
+            }
             try {
                 if ((clickedValue == padroes[PADRAO_FOLGA]) || (clickedValue.join(', ') == padroes[PADRAO_FOLGA])) {
                     p.node.setDataValue('PADRAO_ALTERADO', 0);
@@ -230,7 +257,10 @@ const funcs = {
         if (clickedColumn === 'MOTORISTA') {
             if (!ddfc.includes(clickedValue)) {
                 alert('Motorista desconhecido');
-                if (params.oldValue === null) { params.node.setDataValue(params.column.colId, ''); return; }
+                if (params.oldValue === null) {
+                    params.node.setDataValue(params.column.colId, '');
+                    return;
+                }
                 if (!ddfc.includes(params.oldValue)) {
                     params.node.setDataValue(params.column.colId, '');
                     return;
@@ -239,8 +269,12 @@ const funcs = {
                 return;
             }
             params.node.setDataValue(params.column.colId, clickedValue);
-            if (impedidos.includes(Number(clickedValue))) { alert(`Motorista ${clickedValue} possui ocorrência`); }
-            if (folgando.includes(clickedValue)) { alert(`Motorista ${clickedValue} está de folga`); }
+            if (impedidos.includes(Number(clickedValue))) {
+                alert(`Motorista ${clickedValue} possui ocorrência`);
+            }
+            if (folgando.includes(clickedValue)) {
+                alert(`Motorista ${clickedValue} está de folga`);
+            }
             if (params.node.data['TURNO'] == 1) {
                 if (escalamensal['LINHA'][clickedValue].slice(0, 2) != '99') {
                     if (runtimeArgs.nome_linhas[params.node.data['LINHA']].slice(0, 5) !== 'PLANT' && String(escalamensal['CARRO'][clickedValue]) != 'None' && params.node.data['LINHA'] == escalamensal['LINHA'][clickedValue]) {
@@ -257,29 +291,31 @@ const funcs = {
 
         const impedidos = runtimeArgs.imp;
 
-        if (params.value === null) { return {
-            backgroundColor: null,
+        if (params.value === null) {
+            return {
+                backgroundColor: null,
                 color: null,
                 fontWeight: null
-        }; }
+            };
+        }
         if (impedidos.includes(Number(params.value))) {
             return {
                 backgroundColor: '#ffcccc',
-                    color: '#000',
-                    fontWeight: 'bold'
+                color: '#000',
+                fontWeight: 'bold'
             };
         }
         if (folgando.includes(params.value)) {
             return {
                 backgroundColor: '#f0f0aa',
-                    color: '#000',
-                    fontWeight: 'bold'
+                color: '#000',
+                fontWeight: 'bold'
             };
         }
         return {
             backgroundColor: null,
-                color: null,
-                fontWeight: null
+            color: null,
+            fontWeight: null
         };
     },
 
@@ -299,7 +335,10 @@ const funcs = {
             if (!ddfc.includes(clickedValue)) {
                 alert('Motorista desconhecido');
 
-                if (params.oldValue === null) { params.node.setDataValue(params.column.colId, ''); return; }
+                if (params.oldValue === null) {
+                    params.node.setDataValue(params.column.colId, '');
+                    return;
+                }
 
                 if (!ddfc.includes(params.oldValue)) {
                     params.node.setDataValue(params.column.colId, '');
@@ -310,8 +349,7 @@ const funcs = {
                 return;
             }
             params.node.setDataValue(params.column.colId, clickedValue);
-        }
-        else if (clickedColumn === 'LINHA'){
+        } else if (clickedColumn === 'LINHA') {
             let res = clickedValue.toUpperCase();
             let resp = clickedValue.toUpperCase() + 'P';
             let rest = clickedValue.toUpperCase() + 'T';
@@ -328,13 +366,17 @@ const funcs = {
             } else if (linhas_permitidas.includes(resi)) {
                 params.node.setDataValue('LINHA', resi);
                 return;
-            } else { alert('Linha ' + res + ' não cadastrada para a empresa ' + runtimeArgs.empresa);
+            } else {
+                alert('Linha ' + res + ' não cadastrada para a empresa ' + runtimeArgs.empresa);
                 params.node.setDataValue('LINHA', '');
-                return; }
-        }
-        else if (clickedColumn === 'GARAGEM') {
-            if (clickedValue > '09:40') { params.node.setDataValue('TURNO', 2); }
-            else { params.node.setDataValue('TURNO', 1); }
+                return;
+            }
+        } else if (clickedColumn === 'GARAGEM') {
+            if (clickedValue > '09:40') {
+                params.node.setDataValue('TURNO', 2);
+            } else {
+                params.node.setDataValue('TURNO', 1);
+            }
         }
     },
 
@@ -353,7 +395,10 @@ const funcs = {
             if (!ddfc.includes(clickedValue)) {
                 alert('Motorista desconhecido');
 
-                if (params.oldValue === null) { params.node.setDataValue(params.column.colId, ''); return; }
+                if (params.oldValue === null) {
+                    params.node.setDataValue(params.column.colId, '');
+                    return;
+                }
 
                 if (!ddfc.includes(params.oldValue)) {
                     params.node.setDataValue(params.column.colId, '');
@@ -364,22 +409,36 @@ const funcs = {
                 return;
             }
             params.node.setDataValue(params.column.colId, clickedValue);
-        }
-        else if (clickedColumn === 'PADRAO_FOLGA') {
+        } else if (clickedColumn === 'PADRAO_FOLGA') {
             const temp = clickedValue.toUpperCase();
             params.node.setDataValue('PADRAO_FOLGA', temp);
             params.node.setDataValue('PADRAO_ALTERADO', 0);
 
-            try { params.node.setDataValue('FOLGA', padroes[temp].split(', ')); }
-            catch { params.node.setDataValue('FOLGA', []); }
+            try {
+                params.node.setDataValue('FOLGA', padroes[temp].split(', '));
+            } catch {
+                params.node.setDataValue('FOLGA', []);
+            }
             return;
-        }
-        else if (clickedColumn === 'FOLGA') {
+        } else if (clickedColumn === 'FOLGA') {
             let FOLGA = clickedValue;
-            if (FOLGA === null) { params.node.setDataValue('PADRAO_FOLGA', ''); params.node.setDataValue('FOLGA', []); params.node.setDataValue('PADRAO_ALTERADO', 0); return; }
+            if (FOLGA === null) {
+                params.node.setDataValue('PADRAO_FOLGA', '');
+                params.node.setDataValue('FOLGA', []);
+                params.node.setDataValue('PADRAO_ALTERADO', 0);
+                return;
+            }
             let PADRAO_FOLGA = params.node.data['PADRAO_FOLGA'].toUpperCase();
-            if (FOLGA.length > 0) { if (FOLGA[0] == '') { FOLGA = FOLGA.slice(1); } }
-            if (FOLGA.length === 0) { params.node.setDataValue('PADRAO_FOLGA', ''); params.node.setDataValue('PADRAO_ALTERADO', 0); return; }
+            if (FOLGA.length > 0) {
+                if (FOLGA[0] == '') {
+                    FOLGA = FOLGA.slice(1);
+                }
+            }
+            if (FOLGA.length === 0) {
+                params.node.setDataValue('PADRAO_FOLGA', '');
+                params.node.setDataValue('PADRAO_ALTERADO', 0);
+                return;
+            }
             try {
                 if ((clickedValue == padroes[PADRAO_FOLGA]) || (clickedValue.join(', ') == padroes[PADRAO_FOLGA])) {
                     params.node.setDataValue('PADRAO_ALTERADO', 0);
@@ -394,15 +453,18 @@ const funcs = {
             params.node.setDataValue('PADRAO_ALTERADO', 1);
             params.node.setDataValue('FOLGA', FOLGA);
             return;
-        }
-        else if (clickedColumn === 'GARAGEM') {
-            if (clickedValue > '09:40') { params.node.setDataValue('TURNO', 2); }
-            else { params.node.setDataValue('TURNO', 1); }
+        } else if (clickedColumn === 'GARAGEM') {
+            if (clickedValue > '09:40') {
+                params.node.setDataValue('TURNO', 2);
+            } else {
+                params.node.setDataValue('TURNO', 1);
+            }
         }
     },
 
     folgaRendererMensal: class folgaRendererMensal {
         private eGui!: any;
+
         init(params: any) {
             const padroes = runtimeArgs.padroes;
 
@@ -415,7 +477,7 @@ const funcs = {
             const safeFolga = Array.isArray(folga) ? folga : folga.split(', ');
 
             const defaultValues = safeFolga.filter((f: string) => defaultFolga.includes(f));
-            const extraValues   = safeFolga.filter((f: string) => !defaultFolga.includes(f));
+            const extraValues = safeFolga.filter((f: string) => !defaultFolga.includes(f));
 
             this.eGui = document.createElement('span');
 
@@ -440,16 +502,19 @@ const funcs = {
             let formattedDefault = defaultValues.join(", ");
             if (formattedDefault) {
                 let defaultSpan = document.createElement('span');
-                if (defaultValues.length < defaultFolga.length) { defaultSpan.style.color = 'darksalmon'; }
+                if (defaultValues.length < defaultFolga.length) {
+                    defaultSpan.style.color = 'darksalmon';
+                }
                 defaultSpan.innerText = formattedDefault;
                 this.eGui.appendChild(defaultSpan);
             }
         }
+
         getGui() {
             return this.eGui;
         }
     },
-    
+
     anuladoHighlight(params: any) {
         const motivos = ['Redução de frota', 'Falta de carro', 'Falta de motorista'];
         if (params.data.ANULADO != 999) {
@@ -495,7 +560,9 @@ const funcs = {
 
                 for (const cookie of cookies) {
                     const [key, value] = cookie.split('=');
-                    if (key === 'gpc_data') {token = value;}
+                    if (key === 'gpc_data') {
+                        token = value;
+                    }
                 }
 
                 this.eGui = document.createElement('iframe') as HTMLIFrameElement;
@@ -503,8 +570,7 @@ const funcs = {
                 this.eGui.style.paddingLeft = '.5rem';
                 this.eGui.style.height = '840px';
                 this.eGui.src = `https://gpcapi.rdrgs.com.br/filipeta?token=${encodeURIComponent(token)}&id=${params.data.ID_UNICO}`;
-            }
-            else {
+            } else {
                 this.eGui = document.createElement('div');
                 this.eGui.innerHTML = '<h3>Serviço ainda não encerrado</h3>'
             }
@@ -530,15 +596,16 @@ const funcs = {
 
                 for (const cookie of cookies) {
                     const [key, value] = cookie.split('=');
-                    if (key === 'gpc_data') {token = value;}
+                    if (key === 'gpc_data') {
+                        token = value;
+                    }
                 }
                 this.eGui = document.createElement('iframe');
                 this.eGui.style.width = '100%';
                 this.eGui.style.border = 'none';
                 this.eGui.style.height = '840px';
                 this.eGui.src = `https://gpcapi.rdrgs.com.br/total_prestacao?token=${encodeURIComponent(token)}&id=${params.data.ID_UNICO}&matricula_gerou=${params.data.MATRICULA_GEROU}&dia_gerou=${params.data.DATA_GEROU}`;
-            }
-            else {
+            } else {
                 this.eGui = document.createElement('div');
                 this.eGui.innerHTML = '<h3>Serviço ainda não encerrado</h3>'
             }
@@ -554,18 +621,19 @@ const funcs = {
     },
     realtimeDetail: class MyDetailCellRenderer {
         private eGui!: any;
+
         init(params: any) {
             this.eGui = document.createElement('div');
             this.eGui.style.cssText = "overflow:auto;height:inherit;width:inherit";
             const diff_calc = ((start: any, end: any) => {
                 if (!start || !end) return "--:--";
-                const a = start.split(":").reduce((h: any,m: any) => h*60 + +m, 0);
-                const b = end.split(":").reduce((h: any,m: any) => h*60 + +m, 0);
+                const a = start.split(":").reduce((h: any, m: any) => h * 60 + +m, 0);
+                const b = end.split(":").reduce((h: any, m: any) => h * 60 + +m, 0);
                 const d = b - a;
                 const sign = d < 0 ? "-" : "";
                 const h = Math.floor(Math.abs(d) / 60);
                 const m = Math.abs(d) % 60;
-                return `${sign}${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+                return `${sign}${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
             });
 
             const garage = params.data.REALIZADO ? params.data.GARAGEM : '';
@@ -602,9 +670,41 @@ const funcs = {
         }
     },
 
-    hourParser(params: any){let input=params.newValue;if(input.includes(':')){const time=input.split(':');const hours=Math.min(30,Math.max(0,parseInt(time[0]||0)));const minutes=Math.min(59,Math.max(0,parseInt(time[1]||0)));return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`}if(/^\d{3,4}$/.test(input)){const hours=Math.min(30,Math.max(0,parseInt(input.slice(0,-2))));const minutes=Math.min(59,Math.max(0,parseInt(input.slice(-2))));return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`}return params.value},
+    hourParser(params: any) {
+        let input = params.newValue;
+        if (input.includes(':')) {
+            const time = input.split(':');
+            const hours = Math.min(30, Math.max(0, parseInt(time[0] || 0)));
+            const minutes = Math.min(59, Math.max(0, parseInt(time[1] || 0)));
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+        }
+        if (/^\d{3,4}$/.test(input)) {
+            const hours = Math.min(30, Math.max(0, parseInt(input.slice(0, -2))));
+            const minutes = Math.min(59, Math.max(0, parseInt(input.slice(-2))));
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+        }
+        return params.value
+    },
 
-    carroParser(params: any){if(!(/^-?\d+$/.test(params.newValue))){return "";}if(params.node.data.EMPRESA=="001"){if(params.newValue.length<6){return params.newValue.padStart(6,"190000")}}else if(params.node.data.EMPRESA=="002"){if(params.newValue.length<4){return params.newValue.padStart(4,"6000")}}else if(params.node.data.EMPRESA=="003"){if(params.newValue.length<5){return params.newValue.padStart(5,"21000")}}return params.newValue},
+    carroParser(params: any) {
+        if (!(/^-?\d+$/.test(params.newValue))) {
+            return "";
+        }
+        if (params.node.data.EMPRESA == "001") {
+            if (params.newValue.length < 6) {
+                return params.newValue.padStart(6, "190000")
+            }
+        } else if (params.node.data.EMPRESA == "002") {
+            if (params.newValue.length < 4) {
+                return params.newValue.padStart(4, "6000")
+            }
+        } else if (params.node.data.EMPRESA == "003") {
+            if (params.newValue.length < 5) {
+                return params.newValue.padStart(5, "21000")
+            }
+        }
+        return params.newValue
+    },
 
     turnoParser(params: any) {
         const value = Number(params.newValue ?? params.value);
@@ -615,12 +715,22 @@ const funcs = {
         }
     },
 
-    seqCarro(params: any){if(params.data.SEQ_CARRO==999){return'EXTRA'}else if(params.data.SEQ_CARRO==888){return'TROCA'}else{return `${params.data.SEQ_CARRO}º`}},
+    seqCarro(params: any) {
+        if (params.data.SEQ_CARRO == 999) {
+            return 'EXTRA'
+        } else if (params.data.SEQ_CARRO == 888) {
+            return 'TROCA'
+        } else {
+            return `${params.data.SEQ_CARRO}º`
+        }
+    },
 
     seqGuiaRealtime(params: any) {
         if (params.data.MOTORISTA) {
             const matricula = params.data.MOTORISTA;
-            if (params.data.SEQ_GUIA == 999) { return matricula; }
+            if (params.data.SEQ_GUIA == 999) {
+                return matricula;
+            }
             let seq_guia: number
             if (params.data.SEQ_GUIA) {
                 seq_guia = params.data.SEQ_GUIA;
@@ -629,14 +739,19 @@ const funcs = {
             }
             if (seq_guia > 1) {
                 return `${matricula} (${seq_guia}ª Guia)`;
-            } else { return matricula; }
+            } else {
+                return matricula;
+            }
+        } else {
+            return '';
         }
-        else { return ''; }
     },
 
     seqGuia(params: any) {
         if (params.data.MATRICULA) {
-            if (params.data.SEQ_GUIA == 999) { return `${params.data.MATRICULA}`; }
+            if (params.data.SEQ_GUIA == 999) {
+                return `${params.data.MATRICULA}`;
+            }
             let seq_guia: number
             if (params.data.SEQ_GUIA) {
                 seq_guia = params.data.SEQ_GUIA;
@@ -645,14 +760,17 @@ const funcs = {
             }
             if (seq_guia > 1) {
                 return `${params.data.MATRICULA} (${seq_guia}ª Guia)`;
-            } else { return params.data.MOTORISTA; }
+            } else {
+                return params.data.MOTORISTA;
+            }
+        } else {
+            return '';
         }
-        else { return ''; }
     },
     consultaGuiaRender(params: any) {
         const api = params.api;
 
-        api.addEventListener('cellKeyDown', (e:any) => {
+        api.addEventListener('cellKeyDown', (e: any) => {
             const key = e.event.key;
             if (key === 'ArrowDown' || key === 'ArrowUp') {
                 e.event.preventDefault();
@@ -674,7 +792,7 @@ const funcs = {
         });
     },
 
-    motoristaRowColorRealtime_light(params:any) {
+    motoristaRowColorRealtime_light(params: any) {
         if (params.data.ANULADO != 999) {
             return {
                 backgroundColor: '#FC656599',
@@ -895,35 +1013,83 @@ const funcs = {
         return `Tabela ${fr[0]} - ${fr[6]}  à  ${lr[7]}`;
     },
 
-    rtGaragem(params: any){if(params.data.GARAGE_DIFF){return{color:'red',fontWeight:'bold'}}return null},
-    rtPonto(params: any){if(params.data.PONTO_DIFF){return{color:'red',fontWeight:'bold'}}return null},
-    qtdFormatterGuiasEscaneadas(params: any){if(params.data.count>0){return `${params.data.count} a mais`}else if(params.data.count<0){return `${Math.abs(params.data.count)} faltando`}return'Quantidade OK'},
+    rtGaragem(params: any) {
+        if (params.data.GARAGE_DIFF) {
+            return {color: 'red', fontWeight: 'bold'}
+        }
+        return null
+    },
+    rtPonto(params: any) {
+        if (params.data.PONTO_DIFF) {
+            return {color: 'red', fontWeight: 'bold'}
+        }
+        return null
+    },
+    qtdFormatterGuiasEscaneadas(params: any) {
+        if (params.data.count > 0) {
+            return `${params.data.count} a mais`
+        } else if (params.data.count < 0) {
+            return `${Math.abs(params.data.count)} faltando`
+        }
+        return 'Quantidade OK'
+    },
 
-    rowColorViagem_light(p: any){if(p.data.DUPLICADO){return{color:'#601',backgroundColor:'#FCFC65'}}return null},
-    rowColorViagem_dark(p: any){if(p.data.DUPLICADO){return{color:'#FFBBBB',backgroundColor:'#6019'}}return null},
-    shortDateFormatter(p: any){try {return format(parseISO(p.value), "dd/MM/yyyy")} catch {return p.value}},
-    dateTimeFormatter(p: any){try {return format(parseISO(p.value), "dd/MM/yyyy HH:mm")} catch {return p.value}},
+    rowColorViagem_light(p: any) {
+        if (p.data.DUPLICADO) {
+            return {color: '#601', backgroundColor: '#FCFC65'}
+        }
+        return null
+    },
+    rowColorViagem_dark(p: any) {
+        if (p.data.DUPLICADO) {
+            return {color: '#FFBBBB', backgroundColor: '#6019'}
+        }
+        return null
+    },
+    shortDateFormatter(p: any) {
+        try {
+            return format(parseISO(p.value), "dd/MM/yyyy")
+        } catch {
+            return p.value
+        }
+    },
+    dateTimeFormatter(p: any) {
+        try {
+            return format(parseISO(p.value), "dd/MM/yyyy HH:mm")
+        } catch {
+            return p.value
+        }
+    },
 
-    nameFormatter(p: any) {const ddfc=runtimeArgs.ddfc_list;if(p.value in ddfc){return `${p.value} - ${ddfc[p.value]}`}},
+    nameFormatter(p: any) {
+        const ddfc = runtimeArgs.ddfc_list;
+        if (p.value in ddfc) {
+            return `${p.value} - ${ddfc[p.value]}`
+        }
+    },
 
-    tipoPontoFormatter(p: any) {return ['Início de Jornada', 'Início do Intervalo', 'Fim do Intervalo', 'Fim de Jornada'][p.value]},
-    latLonFormatter(p: any) {return `${p.data.LATITUDE}, ${p.data.LONGITUDE}`},
+    tipoPontoFormatter(p: any) {
+        return ['Início de Jornada', 'Início do Intervalo', 'Fim do Intervalo', 'Fim de Jornada'][p.value]
+    },
+    latLonFormatter(p: any) {
+        return `${p.data.LATITUDE}, ${p.data.LONGITUDE}`
+    },
     diffChegadaSaida(p: any): string {
-    if (!p.data.HORA_CHEGADA || !p.data.HORA_SAIDA) return "--:--";
+        if (!p.data.HORA_CHEGADA || !p.data.HORA_SAIDA) return "--:--";
 
-    const toMinutes = (time: string) =>
-        time.split(":").map(Number).reduce((h, m) => h * 60 + m);
+        const toMinutes = (time: string) =>
+            time.split(":").map(Number).reduce((h, m) => h * 60 + m);
 
-    let arrival = toMinutes(p.data.HORA_CHEGADA);
-    const departure = toMinutes(p.data.HORA_SAIDA);
+        let arrival = toMinutes(p.data.HORA_CHEGADA);
+        const departure = toMinutes(p.data.HORA_SAIDA);
 
-    if (arrival < departure) arrival += 1440; // add 24h if wrapped past midnight
+        if (arrival < departure) arrival += 1440; // add 24h if wrapped past midnight
 
-    const diff = arrival - departure;
-    const hours = Math.floor(diff / 60);
-    const minutes = diff % 60;
+        const diff = arrival - departure;
+        const hours = Math.floor(diff / 60);
+        const minutes = diff % 60;
 
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     },
     diffSaidaChegada(p: any): string {
         if (!p.data.HORA_CHEGADA || !p.data.HORA_SAIDA) return "--:--";
@@ -960,10 +1126,22 @@ const funcs = {
 
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     },
-    rowColorViagensRealizadas_light(p: any){if(p.data.SEQ_CARRO===1){return{color:'#601',backgroundColor:'#FCFC65'}}return null},
-    rowColorViagensRealizadas_light_dark(p: any){if(p.data.SEQ_CARRO===1){return{color:'#FFBBBB',backgroundColor:'#6019'}}return null},
-    minutesToHHMM(p: any){
-        if (isNaN(p.value)) {return "--:--"}
+    rowColorViagensRealizadas_light(p: any) {
+        if (p.data.SEQ_CARRO === 1) {
+            return {color: '#601', backgroundColor: '#FCFC65'}
+        }
+        return null
+    },
+    rowColorViagensRealizadas_light_dark(p: any) {
+        if (p.data.SEQ_CARRO === 1) {
+            return {color: '#FFBBBB', backgroundColor: '#6019'}
+        }
+        return null
+    },
+    minutesToHHMM(p: any) {
+        if (isNaN(p.value)) {
+            return "--:--"
+        }
         const hours = Math.floor(p.value / 60);
         const minutes = p.value % 60;
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
@@ -971,9 +1149,10 @@ const funcs = {
 };
 
 
-
 function parseJsCodeFromPython(v: string) {
-    if (v in funcs) {return (funcs as any)[v] as (params: any) => number;}
+    if (v in funcs) {
+        return (funcs as any)[v] as (params: any) => number;
+    }
     const JS_PLACEHOLDER = "::JSCODE::"
     const funcReg = new RegExp(`${JS_PLACEHOLDER}(.*?)${JS_PLACEHOLDER}`, "s")
     let match = funcReg.exec(v)
@@ -988,276 +1167,278 @@ function parseJsCodeFromPython(v: string) {
 
 
 class AgGrid extends React.Component<ComponentProps, State> {
-  public state: State
+    public state: State
 
-  private readonly gridContainerRef: React.RefObject<HTMLDivElement>
-  private isGridAutoHeightOn: boolean
-  private renderedGridHeightPrevious: number = 0
+    private readonly gridContainerRef: React.RefObject<HTMLDivElement>
+    private isGridAutoHeightOn: boolean
+    private renderedGridHeightPrevious: number = 0
 
-  constructor(props: ComponentProps) {
-    super(props)
-    this.gridContainerRef = React.createRef()
+    constructor(props: ComponentProps) {
+        super(props)
+        this.gridContainerRef = React.createRef()
 
-      addCustomCSS((props.args.mode === 'dark' ? ':where(.ag-theme-params-1){--ag-background-color:#0d1217!important}' : '') + (props.args.custom_css || ''))
+        addCustomCSS((props.args.mode === 'dark' ? ':where(.ag-theme-params-1){--ag-background-color:#0d1217!important}' : '') + (props.args.custom_css || ''))
 
-    const enableEnterpriseModules = props.args.enable_enterprise_modules
-    if (enableEnterpriseModules === true) {
-        ModuleRegistry.registerModules([AllEnterpriseModule])
-      if ("license_key" in props.args) {
-          LicenseManager.setLicenseKey(props.args["license_key"])
-      }
-    } else {
-      ModuleRegistry.registerModules([AllCommunityModule])
-    }
-
-
-    this.isGridAutoHeightOn = this.props.args.gridOptions?.domLayout === "autoHeight"
-
-      runtimeArgs.ddfc = props.args.ddfc
-      runtimeArgs.padroes = props.args.padroes
-      runtimeArgs.empresa = props.args.empresa
-      runtimeArgs.linhas_permitidas = props.args.linhas_permitidas
-      runtimeArgs.nome_linhas = props.args.nome_linhas
-      runtimeArgs.imp = props.args.imp
-      runtimeArgs.retira_folga = props.args.retira_folga
-      runtimeArgs.dict_escala_mensal = props.args.dict_escala_mensal
-      runtimeArgs.ddfc_list = props.args.ddfc_list
-
-
-    const go = this.parseGridoptions()
-
-    const StreamlitAgGridPro = (window as any)?.StreamlitAgGridPro
-    if (StreamlitAgGridPro) {
-      StreamlitAgGridPro.returnGridValue = this.returnGridValue.bind(this)
-
-      if (StreamlitAgGridPro.extenders && Array.isArray(StreamlitAgGridPro.extenders)) {
-        StreamlitAgGridPro.extenders.forEach((extender: (go: any) => void) => {
-          if (typeof extender === "function") {
-            extender(go)
-          }
-        })
-      }
-    }
-
-    this.state = {
-      gridHeight: this.props.args.height,
-      gridOptions: go,
-      isRowDataEdited: false,
-      api: undefined,
-      enterprise_features_enabled: props.args.enable_enterprise_modules,
-    } as State
-  }
-
-  private parseGridoptions() {
-    let gridOptions: GridOptions = cloneDeep(this.props.args.gridOptions)
-
-    gridOptions = deepMap(gridOptions, parseJsCodeFromPython, ["rowData"])
-
-    //Sets getRowID if data came from a pandas dataframe like object. (has __pandas_index)
-    if (every(gridOptions.rowData, (o) => "__pandas_index" in o)) {
-      if (!("getRowId" in gridOptions)) {
-        gridOptions["getRowId"] = (params: GetRowIdParams) =>
-          params.data.__pandas_index as string
-      }
-    }
-
-    if (!("getRowId" in gridOptions)) {
-      console.warn("getRowId was not set. Grid may behave bad when updating.")
-    }
-
-    //processTheming
-    gridOptions.theme = parseTheme(this.props.args.theme, this.props.args.mode)
-
-    return gridOptions
-  }
-
-  private attachStreamlitRerunToEvents(api: GridApi) {
-    const updateEvents = this.props.args.update_on;
-
-    updateEvents.forEach((element: any) => {
-        if (Array.isArray(element)) {
-            // If element is a tuple (eventName, timeout), apply debounce for the timeout duration
-            const [eventName, timeout] = element;
-            api.addEventListener(
-                eventName,
-                debounce(
-                    (e: any) => {
-                        this.returnGridValue(e, eventName);
-                    },
-                    timeout,
-                    {
-                        leading: false,
-                        trailing: true,
-                        maxWait: timeout,
-                    }
-                )
-            );
+        const enableEnterpriseModules = props.args.enable_enterprise_modules
+        if (enableEnterpriseModules === true) {
+            ModuleRegistry.registerModules([AllEnterpriseModule])
+            if ("license_key" in props.args) {
+                LicenseManager.setLicenseKey(props.args["license_key"])
+            }
         } else {
-            // Attach event listener for non-tuple events
-            api.addEventListener(element, (e: any) => {
-                this.returnGridValue(e, element);
-            });
+            ModuleRegistry.registerModules([AllCommunityModule])
         }
-        console.log(`Attached grid return event: ${element}`);
-    });
-  }
 
-  private loadColumnsState() {
-    const columnsState = this.props.args.columns_state
-    if (columnsState != null) {
-      this.state.api?.applyColumnState({
-        state: columnsState,
-        applyOrder: true,
-      })
-    }
-  }
 
-  private resizeGridContainer() {
-    const renderedGridHeight = this.gridContainerRef.current?.clientHeight
-    if (
-      renderedGridHeight &&
-      renderedGridHeight > 0 &&
-      renderedGridHeight !== this.renderedGridHeightPrevious
-    ) {
-      this.renderedGridHeightPrevious = renderedGridHeight
-      Streamlit.setFrameHeight(renderedGridHeight)
-    }
-  }
+        this.isGridAutoHeightOn = this.props.args.gridOptions?.domLayout === "autoHeight"
 
-  private async getGridReturnValue(
-    e: any,
-    streamlitRerunEventTriggerName: string
-  ) {
-    return getGridReturnValue(
-      this.state.api,
-      this.state.enterprise_features_enabled,
-      this.state.gridOptions,
-      this.props,
-      e,
-      streamlitRerunEventTriggerName
-    )
-  }
+        runtimeArgs.ddfc = props.args.ddfc
+        runtimeArgs.padroes = props.args.padroes
+        runtimeArgs.empresa = props.args.empresa
+        runtimeArgs.linhas_permitidas = props.args.linhas_permitidas
+        runtimeArgs.nome_linhas = props.args.nome_linhas
+        runtimeArgs.imp = props.args.imp
+        runtimeArgs.retira_folga = props.args.retira_folga
+        runtimeArgs.dict_escala_mensal = props.args.dict_escala_mensal
+        runtimeArgs.ddfc_list = props.args.ddfc_list
 
-  private returnGridValue(e: any, streamlitRerunEventTriggerName: string) {
-    this.getGridReturnValue(e, streamlitRerunEventTriggerName).then((v) =>
-      Streamlit.setComponentValue(v)
-    )
-  }
 
-  private defineContainerHeight() {
-    if (this.isGridAutoHeightOn) {
-      return {
-        width: this.props.width,
-      }
-    } else {
-      return {
-        width: this.props.width,
-        height: this.props.args.height,
-      }
-    }
-  }
+        const go = this.parseGridoptions()
 
-  public componentDidUpdate(prevProps: any) {
-    const prevGridOptions = prevProps.args.gridOptions
-    const currGridOptions = this.props.args.gridOptions
+        const StreamlitAgGridPro = (window as any)?.StreamlitAgGridPro
+        if (StreamlitAgGridPro) {
+            StreamlitAgGridPro.returnGridValue = this.returnGridValue.bind(this)
 
-    //Theme object Changes here
-    if (
-      !isEqual(prevProps.theme, this.props.theme) ||
-      !isEqual(this.props.args.theme, prevProps.args.theme)
-    ) {
-      let agGridTheme = this.props.args.theme
-
-      this.state.api?.updateGridOptions({
-        theme: parseTheme(agGridTheme, this.props.args.mode),
-      })
-    }
-
-    //const objectDiff = (a: any, b: any) => fromPairs(differenceWith(toPairs(a), toPairs(b), isEqual))
-    if (!isEqual(prevGridOptions, currGridOptions)) {
-      let go = this.parseGridoptions()
-      let row_data = go.rowData
-
-      if (!this.state.isRowDataEdited) {
-        this.state.api?.updateGridOptions({ rowData: row_data })
-      }
-
-      delete go.rowData
-      this.state.api?.updateGridOptions(go)
-    }
-
-    if (
-      !isEqual(prevProps.args.columns_state, this.props.args.columns_state)
-    ) {
-      this.loadColumnsState()
-    }
-  }
-
-  private onGridReady(event: GridReadyEvent) {
-    this.setState({ api: event.api })
-
-    //Is it ugly? Yes. Does it work? Yes. Why? IDK
-    // eslint-disable-next-line
-    this.state.api = event.api
-
-    this.state.api?.addEventListener("rowGroupOpened", () =>
-      this.resizeGridContainer()
-    )
-
-    this.state.api?.addEventListener("firstDataRendered", () => {
-      this.resizeGridContainer()
-    })
-
-    this.state.api.addEventListener(
-      "gridSizeChanged",
-      () => this.onGridSizeChanged()
-    )
-    this.state.api.addEventListener(
-      "cellValueChanged",
-      () => this.cellValueChanged()
-    )
-
-    //Attach events
-    this.attachStreamlitRerunToEvents(this.state.api)
-
-    if (this.state.enterprise_features_enabled) {
-      this.state.api?.forEachDetailGridInfo((i: DetailGridInfo) => {
-        if (i.api !== undefined) {
-          this.attachStreamlitRerunToEvents(i.api)
+            if (StreamlitAgGridPro.extenders && Array.isArray(StreamlitAgGridPro.extenders)) {
+                StreamlitAgGridPro.extenders.forEach((extender: (go: any) => void) => {
+                    if (typeof extender === "function") {
+                        extender(go)
+                    }
+                })
+            }
         }
-      })
+
+        this.state = {
+            gridHeight: this.props.args.height,
+            gridOptions: go,
+            isRowDataEdited: false,
+            api: undefined,
+            enterprise_features_enabled: props.args.enable_enterprise_modules,
+        } as State
     }
 
-    if (this.isGridAutoHeightOn) {Streamlit.setFrameHeight()}
+    private parseGridoptions() {
+        let gridOptions: GridOptions = cloneDeep(this.props.args.gridOptions)
 
-    //If there is any event onGridReady in gridOptions, fire it
-    let { onGridReady } = this.state.gridOptions
-    onGridReady && onGridReady(event)
-  }
+        gridOptions = deepMap(gridOptions, parseJsCodeFromPython, ["rowData"])
 
-  private onGridSizeChanged() {
-    this.resizeGridContainer()
-  }
+        //Sets getRowID if data came from a pandas dataframe like object. (has __pandas_index)
+        if (every(gridOptions.rowData, (o) => "__pandas_index" in o)) {
+            if (!("getRowId" in gridOptions)) {
+                gridOptions["getRowId"] = (params: GetRowIdParams) =>
+                    params.data.__pandas_index as string
+            }
+        }
 
-  private cellValueChanged() {
-    this.setState({ isRowDataEdited: true })
-  }
+        if (!("getRowId" in gridOptions)) {
+            console.warn("getRowId was not set. Grid may behave bad when updating.")
+        }
 
-  public render = (): ReactNode => {
-    return (
-      <div
-        id="gridContainer"
-        ref={this.gridContainerRef}
-        style={this.defineContainerHeight()}
-      >
-        <AgGridReact
-          onGridReady={(e: GridReadyEvent) => this.onGridReady(e)}
-          gridOptions={this.state.gridOptions}
-          localeText={AG_GRID_LOCALE_BR}
-        />
-      </div>
-    )
-  }
+        //processTheming
+        gridOptions.theme = parseTheme(this.props.args.theme, this.props.args.mode)
+
+        return gridOptions
+    }
+
+    private attachStreamlitRerunToEvents(api: GridApi) {
+        const updateEvents = this.props.args.update_on;
+
+        updateEvents.forEach((element: any) => {
+            if (Array.isArray(element)) {
+                // If element is a tuple (eventName, timeout), apply debounce for the timeout duration
+                const [eventName, timeout] = element;
+                api.addEventListener(
+                    eventName,
+                    debounce(
+                        (e: any) => {
+                            this.returnGridValue(e, eventName);
+                        },
+                        timeout,
+                        {
+                            leading: false,
+                            trailing: true,
+                            maxWait: timeout,
+                        }
+                    )
+                );
+            } else {
+                // Attach event listener for non-tuple events
+                api.addEventListener(element, (e: any) => {
+                    this.returnGridValue(e, element);
+                });
+            }
+            console.log(`Attached grid return event: ${element}`);
+        });
+    }
+
+    private loadColumnsState() {
+        const columnsState = this.props.args.columns_state
+        if (columnsState != null) {
+            this.state.api?.applyColumnState({
+                state: columnsState,
+                applyOrder: true,
+            })
+        }
+    }
+
+    private resizeGridContainer() {
+        const renderedGridHeight = this.gridContainerRef.current?.clientHeight
+        if (
+            renderedGridHeight &&
+            renderedGridHeight > 0 &&
+            renderedGridHeight !== this.renderedGridHeightPrevious
+        ) {
+            this.renderedGridHeightPrevious = renderedGridHeight
+            Streamlit.setFrameHeight(renderedGridHeight)
+        }
+    }
+
+    private async getGridReturnValue(
+        e: any,
+        streamlitRerunEventTriggerName: string
+    ) {
+        return getGridReturnValue(
+            this.state.api,
+            this.state.enterprise_features_enabled,
+            this.state.gridOptions,
+            this.props,
+            e,
+            streamlitRerunEventTriggerName
+        )
+    }
+
+    private returnGridValue(e: any, streamlitRerunEventTriggerName: string) {
+        this.getGridReturnValue(e, streamlitRerunEventTriggerName).then((v) =>
+            Streamlit.setComponentValue(v)
+        )
+    }
+
+    private defineContainerHeight() {
+        if (this.isGridAutoHeightOn) {
+            return {
+                width: this.props.width,
+            }
+        } else {
+            return {
+                width: this.props.width,
+                height: this.props.args.height,
+            }
+        }
+    }
+
+    public componentDidUpdate(prevProps: any) {
+        const prevGridOptions = prevProps.args.gridOptions
+        const currGridOptions = this.props.args.gridOptions
+
+        //Theme object Changes here
+        if (
+            !isEqual(prevProps.theme, this.props.theme) ||
+            !isEqual(this.props.args.theme, prevProps.args.theme)
+        ) {
+            let agGridTheme = this.props.args.theme
+
+            this.state.api?.updateGridOptions({
+                theme: parseTheme(agGridTheme, this.props.args.mode),
+            })
+        }
+
+        //const objectDiff = (a: any, b: any) => fromPairs(differenceWith(toPairs(a), toPairs(b), isEqual))
+        if (!isEqual(prevGridOptions, currGridOptions)) {
+            let go = this.parseGridoptions()
+            let row_data = go.rowData
+
+            if (!this.state.isRowDataEdited) {
+                this.state.api?.updateGridOptions({rowData: row_data})
+            }
+
+            delete go.rowData
+            this.state.api?.updateGridOptions(go)
+        }
+
+        if (
+            !isEqual(prevProps.args.columns_state, this.props.args.columns_state)
+        ) {
+            this.loadColumnsState()
+        }
+    }
+
+    private onGridReady(event: GridReadyEvent) {
+        this.setState({api: event.api})
+
+        //Is it ugly? Yes. Does it work? Yes. Why? IDK
+        // eslint-disable-next-line
+        this.state.api = event.api
+
+        this.state.api?.addEventListener("rowGroupOpened", () =>
+            this.resizeGridContainer()
+        )
+
+        this.state.api?.addEventListener("firstDataRendered", () => {
+            this.resizeGridContainer()
+        })
+
+        this.state.api.addEventListener(
+            "gridSizeChanged",
+            () => this.onGridSizeChanged()
+        )
+        this.state.api.addEventListener(
+            "cellValueChanged",
+            () => this.cellValueChanged()
+        )
+
+        //Attach events
+        this.attachStreamlitRerunToEvents(this.state.api)
+
+        if (this.state.enterprise_features_enabled) {
+            this.state.api?.forEachDetailGridInfo((i: DetailGridInfo) => {
+                if (i.api !== undefined) {
+                    this.attachStreamlitRerunToEvents(i.api)
+                }
+            })
+        }
+
+        if (this.isGridAutoHeightOn) {
+            Streamlit.setFrameHeight()
+        }
+
+        //If there is any event onGridReady in gridOptions, fire it
+        let {onGridReady} = this.state.gridOptions
+        onGridReady && onGridReady(event)
+    }
+
+    private onGridSizeChanged() {
+        this.resizeGridContainer()
+    }
+
+    private cellValueChanged() {
+        this.setState({isRowDataEdited: true})
+    }
+
+    public render = (): ReactNode => {
+        return (
+            <div
+                id="gridContainer"
+                ref={this.gridContainerRef}
+                style={this.defineContainerHeight()}
+            >
+                <AgGridReact
+                    onGridReady={(e: GridReadyEvent) => this.onGridReady(e)}
+                    gridOptions={this.state.gridOptions}
+                    localeText={AG_GRID_LOCALE_BR}
+                />
+            </div>
+        )
+    }
 }
 
 export default withStreamlitConnection(AgGrid)
