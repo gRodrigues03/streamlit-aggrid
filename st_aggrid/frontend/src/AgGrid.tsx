@@ -156,7 +156,7 @@ const funcs = {
         const clickedColumn = p.column.colId;
         const clickedValue = p.node.data[clickedColumn];
 
-        if (clickedColumn !== 'FOLGA') {
+        if (clickedColumn === 'MATRICULA') {
             if (clickedValue === null) {
                 p.node.setDataValue(p.column.colId, null);
                 return;
@@ -406,14 +406,16 @@ const funcs = {
         init(params: any) {
             const padroes = runtimeArgs.padroes;
 
-            let folga: string[] = params.value || [];
+            const folga: any = params.value || [];
             const defaultFolgaStr: string = padroes[params.data.PADRAO_FOLGA] || '';
             let defaultFolga: string[]
 
             defaultFolga = defaultFolgaStr.split(", ").map(f => f.trim());
 
-            let defaultValues = folga.filter(f => defaultFolga.includes(f));
-            let extraValues = folga.filter(f => !defaultFolga.includes(f));
+            const safeFolga = Array.isArray(folga) ? folga : folga.split(', ');
+
+            const defaultValues = safeFolga.filter((f: string) => defaultFolga.includes(f));
+            const extraValues   = safeFolga.filter((f: string) => !defaultFolga.includes(f));
 
             this.eGui = document.createElement('span');
 
@@ -957,6 +959,14 @@ const funcs = {
         const minutes = diff % 60;
 
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    },
+    rowColorViagensRealizadas_light(p: any){if(p.data.SEQ_CARRO===1){return{color:'#601',backgroundColor:'#FCFC65'}}return null},
+    rowColorViagensRealizadas_light_dark(p: any){if(p.data.SEQ_CARRO===1){return{color:'#FFBBBB',backgroundColor:'#6019'}}return null},
+    minutesToHHMM(p: any){
+        if (isNaN(p.value)) {return "--:--"}
+        const hours = Math.floor(p.value / 60);
+        const minutes = p.value % 60;
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
     }
 };
 
