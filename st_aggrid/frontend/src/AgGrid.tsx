@@ -1126,15 +1126,15 @@ const funcs = {
 
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   },
-  rowColorViagensRealizadas_light(p: any) {
+  rowColorViagensRealizadas_light(p: any): Record<string, string> | null {
     if (p.data.SEQ_CARRO === 1) {
       return {color: '#601', backgroundColor: '#FCFC65'}
     }
     return null
   },
-  rowColorViagensRealizadas_light_dark(p: any) {
+  rowColorViagensRealizadas_dark(p: any): Record<string, string> | null {
     if (p.data.SEQ_CARRO === 1) {
-      return {color: '#FFBBBB', backgroundColor: '#6019'}
+      return {color: '#FFF', backgroundColor: '#66590099'}
     }
     return null
   },
