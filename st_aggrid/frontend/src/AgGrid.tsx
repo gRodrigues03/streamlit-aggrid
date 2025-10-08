@@ -1025,11 +1025,11 @@ const funcs = {
     }
     return null
   },
-  qtdFormatterGuiasEscaneadas(params: any) {
-    if (params.data.count > 0) {
-      return `${params.data.count} a mais`
-    } else if (params.data.count < 0) {
-      return `${Math.abs(params.data.count)} faltando`
+  qtdFormatterGuiasEscaneadas(p: any) {
+    if (p.value > 0) {
+      return `${p.value} a mais`
+    } else if (p.value < 0) {
+      return `${Math.abs(p.value)} faltando`
     }
     return 'Quantidade OK'
   },
